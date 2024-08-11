@@ -2,103 +2,107 @@
 
 namespace App\Http\Controllers\API;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\API\BaseController;
-use App\Models\Tutor;
+use App\Http\Requests\TutorRequest;
 use App\Http\Resources\TutorResource;
+use App\Http\Services\TutorService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
+use App\Models\Tutor;
 
 class TutorController extends BaseController
 {
-    // Get all tutors
+    protected $tutorService;
+
+    public function __construct(TutorService $tutorService)
+    {
+        $this->tutorService = $tutorService;
+    }
+
+    /**
+     * Récupérer tous les tuteurs.
+     *
+     * @return JsonResponse
+     */
     public function index(): JsonResponse
     {
         try {
-            // Fetch all tutors
-            $tutors = Tutor::all();
-
-            // Return a success response with the tutors data
-            return response()->json([
-                'success' => true,
-                'message' => 'Tutors retrieved successfully.',
-                'data' => TutorResource::collection($tutors)
-            ], 200);
+            $tutors = $this->tutorService->getAllTutors();
+            return $this->sendResponse(TutorResource::collection($tutors), 'Tuteurs récupérés avec succès.');
         } catch (\Exception $e) {
-            // Return an error response if an exception occurs
-            Log::error('An error occurred: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred while retrieving tutors.',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->sendError('Échec de la récupération des tuteurs : ' . $e->getMessage(), [], 500);
         }
     }
 
-    // Store a newly created resource in storage.
-    public function store(Request $request): JsonResponse
+    /**
+     * Enregistrer un nouveau tuteur.
+     *
+     * @param TutorRequest $request
+     * @return JsonResponse
+     */
+    public function store(TutorRequest $request): JsonResponse
     {
-        $input = $request->all();
-
-        $validator = Validator::make($input, [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required:email',
-            'phone' => 'required'
-        ]);
-
-        if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());
+        try {
+            $tutor = $this->tutorService->createTutor($request->validated());
+            return $this->sendResponse(new TutorResource($tutor), 'Tuteur créé avec succès.', 201);
+        } catch (\Exception $e) {
+            return $this->sendError('Échec de la création du tuteur : ' . $e->getMessage(), ['request' => $request->validated()], 500);
         }
-
-        $tutor = Tutor::create($input);
-
-        return $this->sendResponse(new TutorResource($tutor), 'Tutor created successfully.');
     }
 
-    // Display the specified resource.
-    public function show($id): JsonResponse
+    /**
+     * Afficher le tuteur spécifié.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
     {
-        $tutor = Tutor::find($id);
-
-        if (is_null($tutor)) {
-            return $this->sendError('Tutor not found.');
+        try {
+            $tutor = $this->tutorService->findTutorById($id);
+            if (!$tutor) {
+                return $this->sendError('Tuteur non trouvé.', ['id_tutor' => $id], 404);
+            }
+            return $this->sendResponse(new TutorResource($tutor), 'Tuteur récupéré avec succès.');
+        } catch (\Exception $e) {
+            return $this->sendError('Échec de la récupération du tuteur : ' . $e->getMessage(), ['id_tutor' => $id], 500);
         }
-
-        return $this->sendResponse(new TutorResource($tutor), 'Tutor retrieved successfully.');
     }
 
-    // Update the specified resource in storage.
-    public function update(Request $request, Tutor $tutor): JsonResponse
+    /**
+     * Mettre à jour le tuteur spécifié.
+     *
+     * @param TutorRequest $request
+     * @param Tutor $tutor
+     * @return JsonResponse
+     */
+    public function update(TutorRequest $request, Tutor $tutor): JsonResponse
     {
-        $input = $request->all();
-
-        $validator = Validator::make($input, [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required:email',
-            'phone' => 'required'
-        ]);
-
-        if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());
+        try {
+            $updatedTutor = $this->tutorService->updateTutor($tutor, $request->validated());
+            return $this->sendResponse(new TutorResource($updatedTutor), 'Tuteur mis à jour avec succès.', 200);
+        } catch (\Exception $e) {
+            return $this->sendError('Échec de la mise à jour du tuteur : ' . $e->getMessage(), ['request' => $request->validated(), 'tutor' => $tutor], 500);
         }
-
-        $tutor->first_name = $input['first_name'];
-        $tutor->last_name = $input['last_name'];
-        $tutor->email = $input['email'];
-        $tutor->phone = $input['phone'];
-        $tutor->save();
-
-        return $this->sendResponse(new TutorResource($tutor), 'Tutor updated successfully.');
     }
 
-    // Remove the specified resource from storage.
-    public function destroy(Tutor $tutor): JsonResponse
+    /**
+     * Supprimer le tuteur spécifié.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
     {
-        $tutor->delete();
+        try {
+            $tutor = $this->tutorService->findTutorById($id);
 
-        return $this->sendResponse([], 'Tutor deleted successfully.');
+            if (!$tutor) {
+                return $this->sendError('Tuteur non trouvé.', [], 404);
+            }
+
+            $this->tutorService->deleteTutor($tutor);
+            return $this->sendResponse(['tutor' => $tutor], 'Tuteur supprimé avec succès.', 200);
+        } catch (\Exception $e) {
+            return $this->sendError('Échec de la suppression du tuteur : ' . $e->getMessage(), [], 500);
+        }
     }
 }

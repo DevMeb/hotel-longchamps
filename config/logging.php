@@ -52,6 +52,18 @@ return [
 
     'channels' => [
 
+        'api_errors' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/api/errors.log'),
+            'level' => 'error',
+        ],
+
+        'api_infos' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/api/infos.log'),
+            'level' => 'info',
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', env('LOG_STACK', 'single')),
