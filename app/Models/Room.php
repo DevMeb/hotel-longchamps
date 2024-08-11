@@ -13,4 +13,10 @@ class Room extends Model
         'name',
         'rent',
     ];
+
+    // Relation avec le modèle Reservation
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
 }

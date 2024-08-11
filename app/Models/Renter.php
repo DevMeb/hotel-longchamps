@@ -15,6 +15,12 @@ class Renter extends Model
         'tutor_id',
     ];
 
+    // Relation avec le modèle Reservation
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
     /**
      * Get the tutor associated with the renter.
      */
