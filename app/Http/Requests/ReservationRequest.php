@@ -48,6 +48,9 @@ class ReservationRequest extends FormRequest
 
     /**
      * Configurez le validateur pour ajouter la validation des conflits de réservation.
+     *
+     * Cette méthode est appelée après la validation standard pour ajouter une validation personnalisée,
+     * vérifiant les conflits de dates pour les locataires et les chambres.
      */
     protected function withValidator($validator)
     {
@@ -56,13 +59,18 @@ class ReservationRequest extends FormRequest
             $roomId = $this->room_id;
             $startDate = $this->start_date;
             $endDate = $this->end_date;
+            $reservationId = $this->route('reservation') ? $this->route('reservation')->id : null; // Récupérer l'ID de la réservation courante si disponible
 
-            // Vérifier les conflits pour le locataire
+            // Vérifier les conflits pour le locataire, en excluant la réservation actuelle
             $renterConflict = Reservation::where('renter_id', $renterId)
+                ->where('id', '!=', $reservationId) // Exclure la réservation actuelle
                 ->where(function ($query) use ($startDate, $endDate) {
                     $query->where(function ($query) use ($startDate, $endDate) {
-                        $query->where('start_date', '<=', $endDate)
-                            ->where('end_date', '>=', $startDate);
+                        $query->where('start_date', '<=', $endDate ?: $startDate)
+                            ->where(function ($query) use ($startDate, $endDate) {
+                                $query->where('end_date', '>=', $startDate)
+                                        ->orWhereNull('end_date');
+                            });
                     })->orWhere(function ($query) use ($startDate) {
                         $query->whereNull('end_date')
                             ->where('start_date', '<=', $startDate);
@@ -70,12 +78,16 @@ class ReservationRequest extends FormRequest
                 })
                 ->exists();
 
-            // Vérifier les conflits pour la chambre
+            // Vérifier les conflits pour la chambre, en excluant la réservation actuelle
             $roomConflict = Reservation::where('room_id', $roomId)
+                ->where('id', '!=', $reservationId) // Exclure la réservation actuelle
                 ->where(function ($query) use ($startDate, $endDate) {
                     $query->where(function ($query) use ($startDate, $endDate) {
-                        $query->where('start_date', '<=', $endDate)
-                            ->where('end_date', '>=', $startDate);
+                        $query->where('start_date', '<=', $endDate ?: $startDate)
+                            ->where(function ($query) use ($startDate, $endDate) {
+                                $query->where('end_date', '>=', $startDate)
+                                        ->orWhereNull('end_date');
+                            });
                     })->orWhere(function ($query) use ($startDate) {
                         $query->whereNull('end_date')
                             ->where('start_date', '<=', $startDate);
@@ -88,4 +100,6 @@ class ReservationRequest extends FormRequest
             }
         });
     }
+
+
 }
