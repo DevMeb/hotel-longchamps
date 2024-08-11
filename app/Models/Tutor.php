@@ -20,4 +20,12 @@ class Tutor extends Model
         'email',
         'phone',
     ];
+
+    /**
+     * Get the renters associated with the tutor.
+     */
+    public function renters()
+    {
+        return $this->hasMany(Renter::class);
+    }
 }
