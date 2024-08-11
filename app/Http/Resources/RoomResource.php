@@ -19,6 +19,6 @@ class RoomResource extends JsonResource
 
     private function convertCentsToEuros($amount): string
     {
-        return number_format($amount / 100, 2, ',', ' ') . ' €'; // Convertir en euros avec formatage
+        return number_format($amount / 100, 2, '.', ' '); // Convertir en euros avec formatage
     }
 }
