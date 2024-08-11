@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route unique pour servir l'application Vue.js
+Route::get('/{any}', function () {
+    return view('app');
+})->where('any', '.*');

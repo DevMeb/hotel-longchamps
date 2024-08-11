@@ -2,71 +2,45 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Http\Requests\RegisterRequest;
+use App\Http\Services\RegisterService;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends BaseController
 {
-    // Register api
-    public function register(Request $request): JsonResponse
+    protected $registerService;
+
+    // Injecter le service d'enregistrement via le constructeur
+    public function __construct(RegisterService $registerService)
+    {
+        $this->registerService = $registerService;
+    }
+
+    /**
+     * Inscrire un nouvel utilisateur
+     */
+    public function register(RegisterRequest $request): JsonResponse
     {
         try {
-            // Validate the request data
-            $validator = Validator::make($request->all(), [
-                'name' => 'required',
-                'password' => 'required',
-                'c_password' => 'required|same:password',
-            ]);
-
-            // If validation fails, return an error response
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation Error.',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            // Hash the password and create the user
-            $input = $request->all();
-            $input['password'] = bcrypt($input['password']);
-            $user = User::create($input);
-
-            // Generate an API token for the user
-            $success['token'] = $user->createToken('MyApp')->plainTextToken;
-            $success['name'] = $user->name;
-
-            // Return a success response
-            return response()->json([
-                'success' => true,
-                'message' => 'User registered successfully.',
-                'data' => $success
-            ], 201);
+            $user = $this->registerService->createUser($request->all());
+            return $this->sendResponse($this->registerService->prepareUserData($user), 'Utilisateur enregistré avec succès.', JsonResponse::HTTP_CREATED);
         } catch (\Exception $e) {
-            // Return an error response if an exception occurs
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred while registering the user.',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->sendError('Une erreur est survenue lors de l\'enregistrement de l\'utilisateur.', [$e->getMessage()], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    // Login api
+    /**
+     * Connexion d'un utilisateur existant
+     */
     public function login(Request $request): JsonResponse
     {
-        if(Auth::attempt(['name' => $request->name, 'password' => $request->password])){
+        if ($this->registerService->attemptLogin($request->only('name', 'password'))) {
             $user = Auth::user();
-            $success['token'] =  $user->createToken('MyApp')->plainTextToken;
-            $success['name'] =  $user->name;
-
-            return $this->sendResponse($success, 'User login successfully.');
-        }
-        else{
-            return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
+            return $this->sendResponse($this->registerService->prepareUserData($user), 'Connexion réussie.');
+        } else {
+            return $this->sendError('Non autorisé.', ['error' => 'Non autorisé'], JsonResponse::HTTP_UNAUTHORIZED);
         }
     }
 }

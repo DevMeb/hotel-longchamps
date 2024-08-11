@@ -6,12 +6,21 @@
         "build": "vite build"
     },
     "devDependencies": {
+        "@tailwindcss/forms": "^0.5.7",
         "@vitejs/plugin-vue": "^5.1.2",
-        "axios": "^1.6.4",
+        "autoprefixer": "^10.4.20",
+        "axios": "^1.7.3",
         "laravel-vite-plugin": "^1.0",
+        "postcss": "^8.4.41",
+        "tailwindcss": "^3.4.9",
         "vite": "^5.0"
     },
     "dependencies": {
-        "vue": "^3.4.35"
+        "@headlessui/vue": "^1.7.22",
+        "@heroicons/vue": "^2.1.5",
+        "pinia": "^2.2.1",
+        "vue": "^3.4.35",
+        "vue-router": "^4.4.3",
+        "vue-toastification": "^2.0.0-rc.5"
     }
 }
