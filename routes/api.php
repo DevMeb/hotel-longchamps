@@ -11,4 +11,8 @@ Route::controller(RegisterController::class)->group(function(){
 
 Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('tutors', TutorController::class);
+
+    Route::get('/validate-token', function () {
+        return response()->json(['valid' => true]);
+    });
 });

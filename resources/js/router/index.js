@@ -2,6 +2,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '@/views/Home.vue';  // Page d'accueil gérée par Vue
 import Login from '@/views/Login.vue';  // Page de connexion
+import Tutors from '@/views/Tutors.vue';  // Importez le composant Tutors
 
 const routes = [
   {
@@ -16,6 +17,12 @@ const routes = [
     component: Login,
     meta: { guestOnly: true },  // La route Login doit être accessible uniquement aux non-authentifiés
   },
+  {
+    path: '/tutors',
+    name: 'Tutors',
+    component: Tutors,
+    meta: { requiresAuth: true },  // Protéger l'accès par authentification
+  },
 ];
 
 const router = createRouter({
@@ -23,8 +30,24 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token'); // Vérifiez si l'utilisateur est authentifié
+router.beforeEach(async (to, from, next) => {
+  const token = localStorage.getItem('token');
+  let isAuthenticated = false;
+
+  if (token) {
+    try {
+      // Envoyer une requête pour vérifier la validité du token
+      const response = await axios.get('/validate-token', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      isAuthenticated = response.data.valid; // Si l'API retourne 'valid: true'
+    } catch (error) {
+      console.error('Token invalide ou expiré', error);
+      localStorage.removeItem('token'); // Supprimer le token invalide
+    }
+  }
 
   if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
     // Si la route nécessite l'authentification et que l'utilisateur n'est pas authentifié, rediriger vers /login

@@ -38,23 +38,36 @@
 </template>
 
 <script setup>
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
-import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { ref, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
+import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline';
 
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
+const router = useRouter();
+const route = useRoute();
 
 const logout = () => {
   authStore.logout(); // Appeler la méthode de déconnexion du store Pinia
-}
+};
 
-const navigation = [
-  { name: 'Tuteurs', href: '/tutors', current: true },
+const navigation = ref([
+  { name: 'Tuteurs', href: '/tutors', current: false },
   { name: 'Locataires', href: '/renters', current: false },
   { name: 'Chambres', href: '/rooms', current: false },
   { name: 'Factures', href: '/invoices', current: false },
-]
+]);
 
+// Mettre à jour la clé 'current' en fonction de la route active
+const updateCurrentLink = () => {
+  navigation.value.forEach((item) => {
+    item.current = item.href === route.path;
+  });
+};
+
+// Mettre à jour la clé 'current' à chaque changement de route
+watch(route, updateCurrentLink, { immediate: true });
 
 </script>

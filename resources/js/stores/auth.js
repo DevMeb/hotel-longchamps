@@ -1,7 +1,6 @@
 // src/stores/auth.js
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 
@@ -18,7 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await axios.get('/sanctum/csrf-cookie');
       const response = await axios.post('/login', { name, password });
-      token.value = response.data.token;
+      token.value = response.data.data.token;
       localStorage.setItem('token', token.value);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
       toast.success('Connexion réussie !'); // Notification de connexion réussie
@@ -38,21 +37,6 @@ export const useAuthStore = defineStore('auth', () => {
     router.push('/login');
   };
 
-  const setUser = (userData) => {
-    user.value = userData;
-  };
-
-  const fetchUser = async () => {
-    if (token.value) {
-      try {
-        const response = await axios.get('/api/user');
-        setUser(response.data);
-      } catch (err) {
-        logout();  // Si le token est invalide, déconnecter l'utilisateur
-      }
-    }
-  };
-
   return {
     token,
     user,
@@ -60,7 +44,5 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     login,
     logout,
-    fetchUser,
-    setUser,
   };
 });

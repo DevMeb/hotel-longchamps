@@ -21,18 +21,32 @@ class TutorRequest extends FormRequest
      */
     public function rules()
     {
-        // Vérifier si la requête est une mise à jour (PUT/PATCH) ou une création (POST)
         $tutorId = $this->route('tutor') ? $this->route('tutor')->id : null;
 
         return [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[\pL\s\-]+$/u' // Autorise seulement les lettres, espaces, et tirets
+            ],
+            'last_name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[\pL\s\-]+$/u' // Autorise seulement les lettres, espaces, et tirets
+            ],
             'email' => [
                 'required',
                 'email',
                 $tutorId ? 'unique:tutors,email,' . $tutorId : 'unique:tutors,email'
             ],
-            'phone' => 'required|string|max:20',
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^\d+$/' // Autorise seulement les chiffres
+            ],
         ];
     }
 
@@ -42,10 +56,12 @@ class TutorRequest extends FormRequest
             'first_name.required' => 'Le prénom est obligatoire.',
             'first_name.string' => 'Le prénom doit être une chaîne de caractères.',
             'first_name.max' => 'Le prénom ne doit pas dépasser 255 caractères.',
-            
+            'first_name.regex' => 'Le prénom ne doit contenir que des lettres, des espaces, ou des tirets.',
+
             'last_name.required' => 'Le nom de famille est obligatoire.',
             'last_name.string' => 'Le nom de famille doit être une chaîne de caractères.',
             'last_name.max' => 'Le nom de famille ne doit pas dépasser 255 caractères.',
+            'last_name.regex' => 'Le nom de famille ne doit contenir que des lettres, des espaces, ou des tirets.',
 
             'email.required' => 'L\'adresse email est obligatoire.',
             'email.email' => 'L\'adresse email doit être une adresse email valide.',
@@ -54,6 +70,7 @@ class TutorRequest extends FormRequest
             'phone.required' => 'Le numéro de téléphone est obligatoire.',
             'phone.string' => 'Le numéro de téléphone doit être une chaîne de caractères.',
             'phone.max' => 'Le numéro de téléphone ne doit pas dépasser 20 caractères.',
+            'phone.regex' => 'Le numéro de téléphone ne doit contenir que des chiffres.',
         ];
     }
 }
