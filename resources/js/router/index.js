@@ -3,7 +3,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '@/views/Home.vue';  // Page d'accueil gérée par Vue
 import Login from '@/views/Login.vue';  // Page de connexion
 import Tutors from '@/views/Tutors.vue';  // Importez le composant Tutors
-import Renters from '@/views/Renters.vue';  // Importez le composant Tutors
+import Renters from '@/views/Renters.vue';  // Importez le composant Renters
+import Rooms from '@/views/Rooms.vue';  // Importez le composant Rooms
 
 const routes = [
   {
@@ -28,6 +29,12 @@ const routes = [
     path: '/renters',
     name: 'Renters',
     component: Renters,
+    meta: { requiresAuth: true },  // Protéger l'accès par authentification
+  },
+  {
+    path: '/rooms',
+    name: 'Rooms',
+    component: Rooms,
     meta: { requiresAuth: true },  // Protéger l'accès par authentification
   }
 ];
