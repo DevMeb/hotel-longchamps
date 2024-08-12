@@ -103,6 +103,9 @@
 
                   <!-- Afficher le message d'erreur de conflit de date -->
                   <p v-if="errors.date_conflict" class="mt-2 text-sm text-red-600">{{ errors.date_conflict[0] }}</p>
+                  <p v-if="errors.renter_conflict" class="mt-2 text-sm text-red-600">{{ errors.renter_conflict[0] }}</p>
+                  <p v-if="errors.room_conflict" class="mt-2 text-sm text-red-600">{{ errors.room_conflict[0] }}</p>
+
                   
                   <div class="flex justify-end mt-4">
                     <button type="button" @click="showAddReservationModal = false; resetForm();" class="mr-4 px-4 py-2 bg-gray-500 text-white rounded-md">Annuler</button>
