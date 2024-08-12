@@ -57,6 +57,7 @@ const navigation = ref([
   { name: 'Tuteurs', href: '/tutors', current: false },
   { name: 'Locataires', href: '/renters', current: false },
   { name: 'Chambres', href: '/rooms', current: false },
+  { name: 'Réservations', href: '/reservations', current: false },
   { name: 'Factures', href: '/invoices', current: false },
 ]);
 
