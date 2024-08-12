@@ -5,6 +5,7 @@ import Login from '@/views/Login.vue';  // Page de connexion
 import Tutors from '@/views/Tutors.vue';  // Importez le composant Tutors
 import Renters from '@/views/Renters.vue';  // Importez le composant Renters
 import Rooms from '@/views/Rooms.vue';  // Importez le composant Rooms
+import Reservations from '@/views/Reservations.vue';  // Importez le composant Reservations
 
 const routes = [
   {
@@ -35,6 +36,12 @@ const routes = [
     path: '/rooms',
     name: 'Rooms',
     component: Rooms,
+    meta: { requiresAuth: true },  // Protéger l'accès par authentification
+  },
+  {
+    path: '/reservations',
+    name: 'Reservations',
+    component: Reservations,
     meta: { requiresAuth: true },  // Protéger l'accès par authentification
   }
 ];
