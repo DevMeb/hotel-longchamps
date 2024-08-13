@@ -6,7 +6,6 @@ use App\Http\Requests\RenterRequest;
 use App\Http\Resources\RenterResource;
 use App\Http\Services\RenterService;
 use Illuminate\Http\JsonResponse;
-use App\Models\Renter;
 
 class RenterController extends BaseController
 {
@@ -71,12 +70,17 @@ class RenterController extends BaseController
      * Mettre à jour le locataire spécifié.
      *
      * @param RenterRequest $request
-     * @param Renter $renter
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(RenterRequest $request, Renter $renter): JsonResponse
+    public function update(RenterRequest $request, int $id): JsonResponse
     {
         try {
+            $renter = $this->renterService->findRenterById($id);
+            if (!$renter) {
+                return $this->sendError('Locataire non trouvé.', ['id_renter' => $id], 404);
+            }
+
             $updatedRenter = $this->renterService->updateRenter($renter, $request->validated());
             return $this->sendResponse(new RenterResource($updatedRenter), 'Locataire mis à jour avec succès.', 200);
         } catch (\Exception $e) {
