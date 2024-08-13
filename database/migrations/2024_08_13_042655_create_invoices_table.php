@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('reservation_id')->constrained()->onDelete('cascade'); // Clé étrangère vers la table reservations
             $table->string('subject'); // Objet de la facture
             $table->text('description'); // Désignation ou détails supplémentaires
+            $table->date('billing_start_date'); // Date de début de la période de facturation
+            $table->date('billing_end_date'); // Date de fin de la période de facturation
             $table->timestamp('issued_at')->nullable(); // Date d'émission de la facture
             $table->timestamp('paid_at')->nullable(); // Date de paiement de la facture
             $table->enum('status', ['pending', 'issued', 'paid'])->default('pending'); // Statut de la facture
