@@ -60,22 +60,13 @@ class ReservationRequest extends FormRequest
             $roomId = $this->room_id;
             $startDate = $this->start_date;
             $endDate = $this->end_date ?? $startDate; // Si end_date est null, on considère que c'est une réservation d'un jour
-            $reservationId = $this->route('reservation') ? $this->route('reservation')->id : null;
+            $reservationId = $this->route('reservation');
 
             // Vérifier les conflits locataire
             $renterConflict = $this->checkDateConflict($renterId, null, $startDate, $endDate, $reservationId);
 
             // Vérifier les conflits de chambre
             $roomConflict = $this->checkDateConflict(null, $roomId, $startDate, $endDate, $reservationId);
-
-            // Debugging lines
-            if ($renterConflict) {
-                LogService::info('Un conflit pour le locataire à été detecté');
-            }
-
-            if ($roomConflict) {
-                LogService::info('Un conflit pour la chambre à été detecté');
-            }
 
             if ($renterConflict && $roomConflict) {
                 $validator->errors()->add('date_conflict', 'Le locataire loue déjà une chambre pour cette période et la chambre sélectionnée est déjà louée.');
