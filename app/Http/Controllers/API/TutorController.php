@@ -71,12 +71,18 @@ class TutorController extends BaseController
      * Mettre à jour le tuteur spécifié.
      *
      * @param TutorRequest $request
-     * @param Tutor $tutor
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(TutorRequest $request, Tutor $tutor): JsonResponse
+    public function update(TutorRequest $request, int $id): JsonResponse
     {
         try {
+            $tutor = $this->tutorService->findTutorById($id);
+            
+            if (!$tutor) {
+                return $this->sendError('Tuteur non trouvé.', ['id_tutor' => $id], 404);
+            }
+
             $updatedTutor = $this->tutorService->updateTutor($tutor, $request->validated());
             return $this->sendResponse(new TutorResource($updatedTutor), 'Tuteur mis à jour avec succès.', 200);
         } catch (\Exception $e) {
