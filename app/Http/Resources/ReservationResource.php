@@ -17,8 +17,8 @@ class ReservationResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'renter' => new RenterResource($this->renter),
-            'room' => new RoomResource($this->room),
+            'renter' => (new RenterResource($this->renter))->toArray($request),
+            'room' => (new RoomResource($this->room))->toArray($request),
             'start_date' => Carbon::parse($this->start_date)->format('d/m/Y'),
             'end_date' => $this->end_date ? Carbon::parse($this->end_date)->format('d/m/Y') : null,
             'created_at' => $this->created_at->format('d/m/Y H:i:s'),
