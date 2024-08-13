@@ -84,7 +84,7 @@ class RenterController extends BaseController
             $updatedRenter = $this->renterService->updateRenter($renter, $request->validated());
             return $this->sendResponse(new RenterResource($updatedRenter), 'Locataire mis à jour avec succès.', 200);
         } catch (\Exception $e) {
-            return $this->sendError('Échec de la mise à jour du locataire : ' . $e->getMessage(), ['request' => $request->validated(), 'renter' => $renter], 500);
+            return $this->sendError('Échec de la mise à jour du locataire : ' . $e->getMessage(), ['request' => $request->validated()], 500);
         }
     }
 

@@ -86,7 +86,7 @@ class TutorController extends BaseController
             $updatedTutor = $this->tutorService->updateTutor($tutor, $request->validated());
             return $this->sendResponse(new TutorResource($updatedTutor), 'Tuteur mis à jour avec succès.', 200);
         } catch (\Exception $e) {
-            return $this->sendError('Échec de la mise à jour du tuteur : ' . $e->getMessage(), ['request' => $request->validated(), 'tutor' => $tutor], 500);
+            return $this->sendError('Échec de la mise à jour du tuteur : ' . $e->getMessage(), ['request' => $request->validated()], 500);
         }
     }
 

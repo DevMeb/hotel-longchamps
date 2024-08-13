@@ -50,13 +50,17 @@ class RoomController extends BaseController
         }
     }
 
-    public function update(RoomRequest $request, Room $room): JsonResponse
+    public function update(RoomRequest $request, int $id): JsonResponse
     {
         try {
+            $room = $this->roomService->findRoomById($id);
+            if (!$room) {
+                return $this->sendError('Chambre non trouvée.', ['id_room' => $id], 404);
+            }
             $updatedRoom = $this->roomService->updateRoom($room, $request->validated());
             return $this->sendResponse(new RoomResource($updatedRoom), 'Chambre mise à jour avec succès.', 200);
         } catch (\Exception $e) {
-            return $this->sendError('Échec de la mise à jour de la chambre : ' . $e->getMessage(), ['request' => $request->validated(), 'room' => $room], 500);
+            return $this->sendError('Échec de la mise à jour de la chambre : ' . $e->getMessage(), ['request' => $request->validated()], 500);
         }
     }
 
