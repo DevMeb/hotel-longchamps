@@ -6,6 +6,7 @@ import Tutors from '@/views/Tutors.vue';  // Importez le composant Tutors
 import Renters from '@/views/Renters.vue';  // Importez le composant Renters
 import Rooms from '@/views/Rooms.vue';  // Importez le composant Rooms
 import Reservations from '@/views/Reservations.vue';  // Importez le composant Reservations
+import Invoices from '@/views/Invoices.vue';  // Importez le composant Invoices
 
 const routes = [
   {
@@ -42,6 +43,12 @@ const routes = [
     path: '/reservations',
     name: 'Reservations',
     component: Reservations,
+    meta: { requiresAuth: true },  // Protéger l'accès par authentification
+  },
+  {
+    path: '/invoices',
+    name: 'Invoices',
+    component: Invoices,
     meta: { requiresAuth: true },  // Protéger l'accès par authentification
   }
 ];
