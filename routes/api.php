@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\InvoiceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\TutorController;
@@ -17,6 +18,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('renters', RenterController::class);
     Route::apiResource('rooms', RoomController::class);
     Route::apiResource('reservations', ReservationController::class);
+    Route::apiResource('invoices', InvoiceController::class);
 
     Route::get('/validate-token', function () {
         return response()->json(['valid' => true]);

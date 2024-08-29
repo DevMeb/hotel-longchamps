@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Http\Resources\RoomResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Invoice extends Model
 {
@@ -20,6 +21,13 @@ class Invoice extends Model
         'issued_at',
         'paid_at',
         'status',
+    ];
+
+    protected $dates = [
+        'billing_start_date',
+        'billing_end_date',
+        'issued_at',
+        'paid_at',
     ];
 
     // Relation avec la réservation
@@ -54,6 +62,10 @@ class Invoice extends Model
     {
         $roomResource = new RoomResource($this->reservation->room);
 
+        // Assurez-vous que les dates sont bien des instances de Carbon
+        $startDate = Carbon::parse($this->billing_start_date)->format('d/m/Y');
+        $endDate = Carbon::parse($this->billing_end_date)->format('d/m/Y');
+
         return sprintf(
             '%s,
             Objet: %s,
@@ -65,8 +77,8 @@ class Invoice extends Model
             $this->reservation->room->name, // Nom de la chambre
             $this->reservation->renter->first_name, // Prénom du locataire
             $this->reservation->renter->last_name, // Nom du locataire
-            $this->billing_start_date->format('d/m/Y'), // Date de début de la période de facturation
-            $this->billing_end_date->format('d/m/Y'), // Date de fin de la période de facturation
+            $startDate, // Date de début de la période de facturation
+            $endDate, // Date de fin de la période de facturation
             $roomResource->rent, // Montant de la chambre en euros
             $this->created_at->format('d/m/Y') // Date de création de la facture
         );
