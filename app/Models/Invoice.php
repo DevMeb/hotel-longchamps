@@ -55,10 +55,10 @@ class Invoice extends Model
         $roomResource = new RoomResource($this->reservation->room);
 
         return sprintf(
-            '%s, 
-            Objet: %s, 
-            Je soussigné Mr MEBARKI Hachemi gérant du logement situé au 87 Avenue Maréchal Foch 77500 Chelles, 
-            réserve la chambre %s à %s %s, pour la période du %s au %s pour la somme de %s €. 
+            '%s,
+            Objet: %s,
+            Je soussigné Mr MEBARKI Hachemi gérant du logement situé au 87 Avenue Maréchal Foch 77500 Chelles,
+            réserve la chambre %s à %s %s, pour la période du %s au %s pour la somme de %s €.
             A Chelles le %s.',
             $this->reservation->renter->last_name, // Nom du locataire
             $this->subject, // Sujet de la facture
