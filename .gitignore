@@ -18,3 +18,11 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Storage files
+/storage/*
+!/storage/.gitignore
+
+# Cache files
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
