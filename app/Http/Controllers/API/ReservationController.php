@@ -71,16 +71,22 @@ class ReservationController extends BaseController
      * Mettre à jour la réservation spécifiée.
      *
      * @param ReservationRequest $request
-     * @param Reservation $reservation
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(ReservationRequest $request, Reservation $reservation): JsonResponse
+    public function update(ReservationRequest $request, int $id): JsonResponse
     {
         try {
+            $reservation = $this->reservationService->findReservationById($id);
+            
+            if (!$reservation) {
+                return $this->sendError('Réservation non trouvée.', ['id_reservation' => $id], 404);
+            }
+
             $updatedReservation = $this->reservationService->updateReservation($reservation, $request->validated());
             return $this->sendResponse(new ReservationResource($updatedReservation), 'Réservation mise à jour avec succès.', 200);
         } catch (\Exception $e) {
-            return $this->sendError('Échec de la mise à jour de la réservation : ' . $e->getMessage(), ['request' => $request->validated(), 'reservation' => $reservation], 500);
+            return $this->sendError('Échec de la mise à jour de la réservation : ' . $e->getMessage(), ['request' => $request->validated()], 500);
         }
     }
 

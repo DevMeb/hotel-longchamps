@@ -7,6 +7,8 @@ use App\Http\Services\RegisterService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
 
 class RegisterController extends BaseController
 {

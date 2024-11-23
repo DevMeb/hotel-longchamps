@@ -21,7 +21,7 @@ class TutorRequest extends FormRequest
      */
     public function rules()
     {
-        $tutorId = $this->route('tutor') ? $this->route('tutor')->id : null;
+        $tutorId = $this->route('tutor');
 
         return [
             'first_name' => [

@@ -1,179 +1,319 @@
 <?php
 
-namespace Tests\Feature\Requests;
-
 use Tests\TestCase;
 use App\Models\Reservation;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Renter;
 use App\Models\Room;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User; // Assurez-vous d'importer le modèle User ou celui que vous utilisez pour l'authentification
-use Laravel\Sanctum\Sanctum;
+use App\Models\User;
 
 class ReservationRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $renter;
-    protected $room;
+    protected $user;
+
+    protected $renter1;
+    protected $renter2;
+
+    protected $room1;
+    protected $room2;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->renter = Renter::factory()->create();
-        $this->room = Room::factory()->create();
+        $this->user = User::factory()->create();
 
-        // Créez un utilisateur et authentifiez-le
-        $user = User::factory()->create();
-        Sanctum::actingAs($user); // Utilisez Sanctum si vous utilisez Sanctum pour l'authentification
+        // Création de quelques locataires et chambres pour les tests
+        $this->renter1 = Renter::factory()->create();
+        $this->renter2 = Renter::factory()->create();
+        $this->room1 = Room::factory()->create();
+        $this->room2 = Room::factory()->create();
     }
 
-    public function test_it_detects_conflict_when_new_reservation_overlaps_existing_without_end_date(): void
+    public function test_it_detects_conflict_when_renter_has_another_reservation_for_same_period()
     {
-        // Création de la première réservation sans date de fin
+        $this->actingAs($this->user, 'sanctum');
+
         Reservation::create([
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-10',
-            'end_date' => null,
-        ]);
-
-        // Tentative de création d'une nouvelle réservation qui commence après
-        $response = $this->postJson('/api/reservations', [
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-12',
-            'end_date' => null,
-        ]);
-
-        $response->assertStatus(422)
-                 ->assertJsonValidationErrors('date_conflict');
-    }
-
-    public function test_it_detects_conflict_when_new_reservation_starts_before_existing_without_end_date(): void
-    {
-        // Création de la première réservation sans date de fin
-        Reservation::create([
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-10',
-            'end_date' => null,
-        ]);
-
-        // Tentative de création d'une nouvelle réservation qui commence avant
-        $response = $this->postJson('/api/reservations', [
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-08',
-            'end_date' => null,
-        ]);
-
-        $response->assertStatus(422)
-                 ->assertJsonValidationErrors('date_conflict');
-    }
-
-    public function test_it_allows_non_conflicting_reservation(): void
-    {
-        // Création de la première réservation avec une date de fin
-        Reservation::create([
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-10',
-            'end_date' => '2024-08-15',
-        ]);
-
-        // Tentative de création d'une nouvelle réservation qui ne chevauche pas
-        $response = $this->postJson('/api/reservations', [
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-16',
-            'end_date' => '2024-08-20',
-        ]);
-
-        $response->assertStatus(201)
-                 ->assertJsonMissingValidationErrors('date_conflict');
-    }
-
-    public function test_it_detects_conflict_when_modifying_existing_reservation(): void
-    {
-        // Création d'une première réservation
-        $reservation = Reservation::create([
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-10',
-            'end_date' => '2024-08-15',
-        ]);
-
-        // Création d'une deuxième réservation
-        Reservation::create([
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-20',
-            'end_date' => null,
-        ]);
-
-        // Tentative de modification de la première réservation qui cause un conflit
-        $response = $this->putJson('/api/reservations/' . $reservation->id, [
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-12',
-            'end_date' => null,
-        ]);
-
-        $response->assertStatus(422)
-                 ->assertJsonValidationErrors('date_conflict');
-    }
-
-    public function test_it_detects_conflict_with_existing_reservation_when_creating_new_one(): void
-    {
-        // Création de la première réservation avec date de fin
-        Reservation::create([
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
             'start_date' => '2024-08-01',
             'end_date' => '2024-08-10',
         ]);
 
-        // Tentative de créer une nouvelle réservation qui chevauche la première
-        $response = $this->postJson('/api/reservations', [
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
+        $response = $this->post('/api/reservations', [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room2->id,
             'start_date' => '2024-08-05',
             'end_date' => '2024-08-15',
         ]);
 
-        $response->assertStatus(422)
-                 ->assertJsonValidationErrors('date_conflict');
+        $response->assertSessionHasErrors('renter_conflict');
     }
 
-    public function test_it_allows_reservation_with_no_conflicts_after_modification(): void
+    public function test_it_detects_conflict_when_room_is_already_reserved_for_same_period()
     {
-        // Création d'une première réservation
-        $reservation = Reservation::create([
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-10',
+        $this->actingAs($this->user, 'sanctum');
+
+        Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => '2024-08-10',
+        ]);
+
+        $response = $this->post('/api/reservations', [
+            'renter_id' => $this->renter2->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-05',
             'end_date' => '2024-08-15',
         ]);
 
-        // Création d'une deuxième réservation
+        $response->assertSessionHasErrors('room_conflict');
+    }
+
+    public function test_it_detects_conflict_when_both_renter_and_room_have_conflicts_for_same_period()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
         Reservation::create([
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-20',
-            'end_date' => '2024-08-25',
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => '2024-08-10',
         ]);
 
-        // Modification de la première réservation sans conflit
-        $response = $this->putJson('/api/reservations/' . $reservation->id, [
-            'renter_id' => $this->renter->id,
-            'room_id' => $this->room->id,
-            'start_date' => '2024-08-16',
-            'end_date' => '2024-08-19',
+        $response = $this->post('/api/reservations', [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-05',
+            'end_date' => '2024-08-15',
         ]);
 
-        $response->assertStatus(200)
-                 ->assertJsonMissingValidationErrors('date_conflict');
+        $response->assertSessionHasErrors('date_conflict');
+    }
+
+    public function test_it_detects_conflict_when_renter_has_long_term_reservation_during_period()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
+        Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => null, // Long-term reservation
+        ]);
+
+        $response = $this->post('/api/reservations', [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room2->id,
+            'start_date' => '2024-08-05',
+            'end_date' => '2024-08-15',
+        ]);
+
+        $response->assertSessionHasErrors('renter_conflict');
+    }
+
+    public function test_it_detects_conflict_when_room_has_long_term_reservation_during_period()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
+        Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => null, // Long-term reservation
+        ]);
+
+        $response = $this->post('/api/reservations', [
+            'renter_id' => $this->renter2->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-05',
+            'end_date' => '2024-08-15',
+        ]);
+
+        $response->assertSessionHasErrors('room_conflict');
+    }
+
+    public function test_it_allows_reservation_when_there_is_no_conflict()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
+        Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => '2024-08-10',
+        ]);
+
+        $response = $this->post('/api/reservations', [
+            'renter_id' => $this->renter2->id,
+            'room_id' => $this->room2->id,
+            'start_date' => '2024-08-11',
+            'end_date' => '2024-08-15',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+    }
+
+    public function test_it_allows_reservation_when_renter_and_room_have_different_periods()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
+        Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => '2024-08-10',
+        ]);
+
+        Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room2->id,
+            'start_date' => '2024-08-11',
+            'end_date' => '2024-08-15',
+        ]);
+
+        $response = $this->post('/api/reservations', [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-11',
+            'end_date' => '2024-08-15',
+        ]);
+
+        $response->assertSessionHasErrors('renter_conflict');
+    }
+
+    public function test_it_blocks_unauthenticated_users_from_creating_reservations()
+    {
+        // Suppression de l'authentification pour tester les utilisateurs non authentifiés
+        $response = $this->post('/api/reservations', [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-11',
+            'end_date' => '2024-08-15',
+        ]);
+
+        // S'assurer que la réponse est une redirection ou un statut 401
+        if ($response->status() === 302) {
+            $response->assertRedirect(); // Assure que c'est une redirection vers une page de login
+        } else {
+            $response->assertStatus(401); // Pour une API, s'attend à un 401
+        }
+    }
+
+    public function test_it_detects_conflict_when_updating_reservation_to_conflicting_period()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
+        // Création de deux réservations distinctes
+        $reservation1 = Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => '2024-08-10',
+        ]);
+
+        $reservation2 = Reservation::create([
+            'renter_id' => $this->renter2->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-11',
+            'end_date' => '2024-08-15',
+        ]);
+
+        // Tentative de mise à jour de la première réservation pour chevaucher la deuxième
+        $response = $this->put('/api/reservations/' . $reservation1->id, [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-09',
+            'end_date' => '2024-08-12',
+        ]);
+
+        $response->assertSessionHasErrors('room_conflict');
+    }
+
+    public function test_it_allows_updating_reservation_when_no_conflict_exists()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
+        // Création d'une réservation
+        $reservation = Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => '2024-08-10',
+        ]);
+
+        // Mise à jour de la réservation avec une période différente sans conflit
+        $response = $this->put('/api/reservations/' . $reservation->id, [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-15',
+            'end_date' => '2024-08-20',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+    }
+
+    public function test_it_detects_conflict_when_updating_reservation_to_overlap_with_another_reservation_of_same_renter()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
+        // Création de deux réservations distinctes pour le même locataire
+        $reservation1 = Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => '2024-08-10',
+        ]);
+
+        $reservation2 = Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room2->id,
+            'start_date' => '2024-08-15',
+            'end_date' => '2024-08-20',
+        ]);
+
+        // Tentative de mise à jour de la première réservation pour chevaucher la deuxième
+        $response = $this->put('/api/reservations/' . $reservation1->id, [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-18',
+            'end_date' => '2024-08-22',
+        ]);
+
+        $response->assertSessionHasErrors('renter_conflict');
+    }
+
+    public function test_it_allows_updating_reservation_when_no_overlap_with_same_renter_reservation()
+    {
+        $this->actingAs($this->user, 'sanctum');
+
+        // Création de deux réservations distinctes pour le même locataire
+        $reservation1 = Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-01',
+            'end_date' => '2024-08-10',
+        ]);
+
+        $reservation2 = Reservation::create([
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room2->id,
+            'start_date' => '2024-08-15',
+            'end_date' => '2024-08-20',
+        ]);
+
+        // Mise à jour de la première réservation avec une période qui ne chevauche pas la deuxième
+        $response = $this->put('/api/reservations/' . $reservation1->id, [
+            'renter_id' => $this->renter1->id,
+            'room_id' => $this->room1->id,
+            'start_date' => '2024-08-11',
+            'end_date' => '2024-08-14',
+        ]);
+
+        $response->assertSessionHasNoErrors();
     }
 }

@@ -27,4 +27,10 @@ class Reservation extends Model
     {
         return $this->belongsTo(Room::class);
     }
+
+    // Relation avec les factures (une réservation peut avoir plusieurs factures)
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }
