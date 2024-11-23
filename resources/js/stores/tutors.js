@@ -10,7 +10,7 @@ export const useTutorsStore = defineStore('tutors', () => {
   async function fetchTutors() {
     loading.value = true;
     try {
-      const response = await axios.get('/tutors');
+      const response = await axios.get('api/tutors');
       tutors.value = response.data.data;
 
       //For GET method Laravel return code 200 with HTML instead 405.
@@ -27,7 +27,7 @@ export const useTutorsStore = defineStore('tutors', () => {
 
   async function addTutor(tutor) {
     try {
-      return await axios.post('/tutors', tutor);
+      return await axios.post('api/tutors', tutor);
     } catch (err) {
       throw err;
     }
@@ -35,7 +35,7 @@ export const useTutorsStore = defineStore('tutors', () => {
 
   async function updateTutor(tutor) {
     try {
-      return await axios.put(`/tutors/${tutor.id}`, tutor);
+      return await axios.put(`api/tutors/${tutor.id}`, tutor);
     } catch (err) {
       throw err;
     }
@@ -43,7 +43,7 @@ export const useTutorsStore = defineStore('tutors', () => {
 
   async function deleteTutor(tutorId) {
     try {
-      return await axios.delete(`/tutors/${tutorId}`);
+      return await axios.delete(`api/tutors/${tutorId}`);
     } catch (err) {
       throw err;
     }

@@ -59,13 +59,14 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
+  console.log('ICI')
   const token = localStorage.getItem('token');
   let isAuthenticated = false;
 
   if (token) {
     try {
       // Envoyer une requête pour vérifier la validité du token
-      const response = await axios.get('/validate-token', {
+      const response = await axios.get('api/validate-token', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
