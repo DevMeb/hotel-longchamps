@@ -27,6 +27,8 @@ class BaseControllerTest extends TestCase
      */
     public function test_send_response()
     {
+        dd(env('DB_CONNECTION'), env('DB_DATABASE'), env('APP_ENV'));
+
         $controller = new BaseController();
 
         $result = ['key' => 'value'];

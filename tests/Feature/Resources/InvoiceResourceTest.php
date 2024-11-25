@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Feature\Resources;
 
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;

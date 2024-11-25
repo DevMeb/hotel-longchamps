@@ -10,7 +10,7 @@ export const useRentersStore = defineStore('renters', () => {
   async function fetchRenters() {
     loading.value = true;
     try {
-      const response = await axios.get('/renters');
+      const response = await axios.get('api/renters');
       renters.value = response.data.data;
 
       // For GET method Laravel return code 200 with HTML instead of 405.
@@ -27,7 +27,7 @@ export const useRentersStore = defineStore('renters', () => {
 
   async function addRenter(renter) {
     try {
-      return await axios.post('/renters', renter);
+      return await axios.post('api/renters', renter);
     } catch (err) {
       throw err;
     }
@@ -35,7 +35,7 @@ export const useRentersStore = defineStore('renters', () => {
 
   async function updateRenter(renter) {
     try {
-      return await axios.put(`/renters/${renter.id}`, renter);
+      return await axios.put(`api/renters/${renter.id}`, renter);
     } catch (err) {
       throw err;
     }
@@ -43,7 +43,7 @@ export const useRentersStore = defineStore('renters', () => {
 
   async function deleteRenter(renterId) {
     try {
-      return await axios.delete(`/renters/${renterId}`);
+      return await axios.delete(`api/renters/${renterId}`);
     } catch (err) {
       throw err;
     }

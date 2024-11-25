@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Renter;
+use App\Models\Tutor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class RenterFactory extends Factory
@@ -14,7 +15,7 @@ class RenterFactory extends Factory
         return [
             'first_name' => $this->faker->firstName,
             'last_name' => $this->faker->lastName,
-            // Ajoutez d'autres champs si nécessaire
+            'tutor_id' => Tutor::factory(), // Génère automatiquement un tutor si aucun n'est passé
         ];
     }
 }
