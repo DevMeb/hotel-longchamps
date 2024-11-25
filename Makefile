@@ -22,6 +22,10 @@ first-setup: build up npm-install npm-dev composer-update migrate seed ## Config
 build: ## Build les conteneurs Docker avec --no-cache et --force-rm
 	$(DOCKER_COMPOSE) build --no-cache --force-rm
 
+.PHONY: test
+test: ## Lance les tests
+	$(DOCKER_COMPOSE) exec $(SERVICE_LARAVEL) php artisan test
+
 .PHONY: up
 up: ## Démarre tous les conteneurs en arrière-plan, puis lance le serveur Vite
 	$(DOCKER_COMPOSE) up -d

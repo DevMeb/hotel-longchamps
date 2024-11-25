@@ -11,7 +11,7 @@ export const useRoomsStore = defineStore('rooms', () => {
   async function fetchRooms() {
     loading.value = true;
     try {
-      const response = await axios.get('/rooms');
+      const response = await axios.get('api/rooms');
       rooms.value = response.data.data;
 
       // Pour les méthodes GET, Laravel renvoie un code 200 avec du HTML au lieu d'un JSON si l'endpoint est incorrect.
@@ -28,7 +28,7 @@ export const useRoomsStore = defineStore('rooms', () => {
 
   async function addRoom(room) {
     try {
-      return await axios.post('/rooms', room);
+      return await axios.post('api/rooms', room);
     } catch (err) {
       throw err;
     }
@@ -36,7 +36,7 @@ export const useRoomsStore = defineStore('rooms', () => {
 
   async function updateRoom(room) {
     try {
-      return await axios.put(`/rooms/${room.id}`, room);
+      return await axios.put(`api/rooms/${room.id}`, room);
     } catch (err) {
       throw err;
     }
@@ -44,7 +44,7 @@ export const useRoomsStore = defineStore('rooms', () => {
 
   async function deleteRoom(roomId) {
     try {
-      return await axios.delete(`/rooms/${roomId}`);
+      return await axios.delete(`api/rooms/${roomId}`);
     } catch (err) {
       throw err;
     }

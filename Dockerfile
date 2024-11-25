@@ -17,14 +17,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Changer l'utilisateur par défaut en www-data
-USER www-data
-
 # Définir le répertoire de travail
 WORKDIR /var/www/html
 
 # Copier le projet avec les permissions correctes
-COPY --chown=www-data:www-data . .
+COPY . .
 
 # Installer les dépendances PHP
 RUN composer install --optimize-autoloader

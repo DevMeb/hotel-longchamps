@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Feature\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Reservation;

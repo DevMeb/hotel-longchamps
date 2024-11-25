@@ -11,7 +11,7 @@ export const useReservationsStore = defineStore('reservations', () => {
   async function fetchReservations() {
     loading.value = true;
     try {
-      const response = await axios.get('/reservations');
+      const response = await axios.get('api/reservations');
       reservations.value = response.data.data;
 
       // Vérifier si le contenu est du JSON
@@ -27,7 +27,7 @@ export const useReservationsStore = defineStore('reservations', () => {
 
   async function addReservation(reservation) {
     try {
-      const response = await axios.post('/reservations', reservation);
+      const response = await axios.post('api/reservations', reservation);
       reservations.value.push(response.data.data); // Ajouter la nouvelle réservation localement
       return response;
     } catch (err) {
@@ -37,7 +37,7 @@ export const useReservationsStore = defineStore('reservations', () => {
 
   async function updateReservation(reservation) {
     try {
-      const response = await axios.put(`/reservations/${reservation.id}`, reservation);
+      const response = await axios.put(`api/reservations/${reservation.id}`, reservation);
       const index = reservations.value.findIndex(r => r.id === reservation.id);
       if (index !== -1) {
         reservations.value[index] = response.data.data; // Mettre à jour la réservation localement
@@ -50,7 +50,7 @@ export const useReservationsStore = defineStore('reservations', () => {
 
   async function deleteReservation(reservationId) {
     try {
-      const response = await axios.delete(`/reservations/${reservationId}`);
+      const response = await axios.delete(`api/reservations/${reservationId}`);
       reservations.value = reservations.value.filter(r => r.id !== reservationId); // Supprimer localement
       return response;
     } catch (err) {
