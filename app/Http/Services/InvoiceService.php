@@ -24,6 +24,19 @@ class InvoiceService
      */
     public function createInvoice(array $data): Invoice
     {
+        // Créer une instance temporaire d'Invoice pour calculer la description
+        $tempInvoice = new Invoice([
+            'reservation_id' => $data['reservation_id'],
+            'billing_start_date' => $data['billing_start_date'],
+            'billing_end_date' => $data['billing_end_date'],
+            'subject' => $data['subject'], // Si nécessaire pour la description,
+        ]);
+
+        $tempInvoice->created_at = now();
+
+        // Ajouter la description calculée dans les données
+        $data['description'] = $tempInvoice->description;
+
         return Invoice::create($data);
     }
 

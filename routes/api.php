@@ -18,7 +18,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('renters', RenterController::class);
     Route::apiResource('rooms', RoomController::class);
     Route::apiResource('reservations', ReservationController::class);
+
     Route::apiResource('invoices', InvoiceController::class);
+    Route::get('invoices/{invoice}/download', [InvoiceController::class, 'downloadPdf'])->name('invoices.download');
 
     Route::get('/validate-token', function () {
         return response()->json(['valid' => true]);

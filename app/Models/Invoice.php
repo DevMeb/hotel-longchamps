@@ -60,9 +60,8 @@ class Invoice extends Model
     // Méthode pour générer dynamiquement la désignation
     public function getDescriptionAttribute()
     {
-        $roomResource = new RoomResource($this->reservation->room);
+        $roomResource = (new RoomResource($this->reservation->room))->toArray(null);
 
-        // Assurez-vous que les dates sont bien des instances de Carbon
         $startDate = Carbon::parse($this->billing_start_date)->format('d/m/Y');
         $endDate = Carbon::parse($this->billing_end_date)->format('d/m/Y');
 
@@ -79,7 +78,7 @@ class Invoice extends Model
             $this->reservation->renter->last_name, // Nom du locataire
             $startDate, // Date de début de la période de facturation
             $endDate, // Date de fin de la période de facturation
-            $roomResource->rent, // Montant de la chambre en euros
+            $roomResource['rent'], // Montant de la chambre en euros
             $this->created_at->format('d/m/Y') // Date de création de la facture
         );
     }
