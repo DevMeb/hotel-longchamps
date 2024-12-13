@@ -7,6 +7,8 @@ use App\Http\Resources\InvoiceResource;
 use App\Http\Services\InvoiceService;
 use Illuminate\Http\JsonResponse;
 use App\Models\Invoice;
+use Exception;
+use Illuminate\Http\Request;
 
 class InvoiceController extends BaseController
 {
@@ -42,6 +44,9 @@ class InvoiceController extends BaseController
     {
         try {
             $invoice = $this->invoiceService->createInvoice($request->validated());
+            
+            $this->invoiceService->downloadPdf($invoice);
+            
             return $this->sendResponse(new InvoiceResource($invoice), 'Facture créée avec succès.', 201);
         } catch (\Exception $e) {
             return $this->sendError('Échec de la création de la facture : ' . $e->getMessage(), ['request' => $request->validated()], 500);
@@ -109,6 +114,42 @@ class InvoiceController extends BaseController
             return $this->sendResponse(['invoice' => $invoice], 'Facture supprimée avec succès.', 200);
         } catch (\Exception $e) {
             return $this->sendError('Échec de la suppression de la facture : ' . $e->getMessage(), [], 500);
+        }
+    }
+
+    public function displayPdf(int $id)
+    {
+        try {
+            $invoice = $this->invoiceService->findInvoiceById($id);
+
+            // Rechercher le PDF dans le stockage
+            $pdfContent = $this->invoiceService->searchPdfInStorage($invoice->pdf_path);
+
+            // Retourner une réponse avec le contenu du PDF
+            return response($pdfContent, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($invoice->pdf_path) . '"',
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), [], 404);
+        }
+    }
+
+    public function sendEmail(Request $request, int $id)
+    {
+        try {
+            $invoice = $this->invoiceService->findInvoiceById($id);
+
+            // Récupérer et valider les emails
+            $emails = explode(',', $request->input('emails', ''));
+
+            // Utiliser le service pour envoyer l'email
+            $this->invoiceService->sendInvoiceByEmail($invoice, $emails);
+
+            return $this->sendResponse(new InvoiceResource($invoice), 'Email envoyé avec succès.', 200);
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), [], 404);
         }
     }
 }

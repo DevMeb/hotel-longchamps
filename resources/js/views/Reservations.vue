@@ -55,7 +55,8 @@
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">{{ reservation.start_date }}</td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">{{ reservation.end_date || 'En cours' }}</td>
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                          <a @click="editReservation(reservation)" href="#" class="text-indigo-400 hover:text-indigo-300">Éditer</a>
+                          <a @click="handleAddInvoice(reservation)" href="#" class="text-indigo-400 hover:text-indigo-300">Créer une facture</a>
+                          <a @click="editReservation(reservation)" href="#" class="ml-4 text-indigo-400 hover:text-indigo-300">Éditer</a>
                           <a @click="confirmDeleteReservation(reservation)" href="#" class="ml-4 text-red-400 hover:text-red-300">Supprimer</a>
                         </td>
                       </tr>
@@ -126,6 +127,43 @@
                 </div>
               </div>
             </div>
+
+            <!-- Modal pour ajouter une facture -->
+            <div v-if="showAddInvoiceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                <h2 class="text-lg font-semibold mb-4">Ajouter une facture</h2>
+                <form @submit.prevent="saveInvoice">
+                  <div>
+                    <label for="subject" class="block text-sm font-medium leading-6 text-gray-900">Sujet</label>
+                    <input type="text" v-model="newInvoice.subject" id="subject" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6" />
+                    <p v-if="errors.subject" class="mt-2 text-sm text-red-600">{{ errors.subject.join(' ') }}</p>
+                  </div>
+                  <div>
+                    <label for="billing_start_date" class="block text-sm font-medium leading-6 text-gray-900">Date de début</label>
+                    <input type="date" v-model="newInvoice.billing_start_date" id="billing_start_date" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6" />
+                    <p v-if="errors.billing_start_date" class="mt-2 text-sm text-red-600">{{ errors.billing_start_date.join(' ') }}</p>
+                  </div>
+                  <div>
+                    <label for="billing_end_date" class="block text-sm font-medium leading-6 text-gray-900">Date de fin</label>
+                    <input type="date" v-model="newInvoice.billing_end_date" id="billing_end_date" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6" />
+                    <p v-if="errors.billing_end_date" class="mt-2 text-sm text-red-600">{{ errors.billing_end_date.join(' ') }}</p>
+                  </div>
+                  <div>
+                    <label for="status" class="block text-sm font-medium leading-6 text-gray-900">Statut</label>
+                    <select v-model="newInvoice.status" id="status" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6">
+                      <option value="pending">En attente</option>
+                      <option value="issued">Émise</option>
+                      <option value="paid">Payée</option>
+                    </select>
+                    <p v-if="errors.status" class="mt-2 text-sm text-red-600">{{ errors.status.join(' ') }}</p>
+                  </div>
+                  <div class="flex justify-end mt-4">
+                    <button type="button" @click="showAddInvoiceModal = false; resetForm();" class="mr-4 px-4 py-2 bg-gray-500 text-white rounded-md">Annuler</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-md">{{ isEditing ? 'Mettre à jour' : 'Ajouter' }}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
             
           </div>
         </div>
@@ -141,7 +179,8 @@
   import { useToast } from 'vue-toastification';
   import { useRentersStore } from '@/stores/renters';
   import { useRoomsStore } from '@/stores/rooms';
-  
+  import { useInvoicesStore } from '@/stores/invoices';
+
   const reservationsStore = useReservationsStore();
   const { reservations, error, loading } = storeToRefs(reservationsStore);
   const { fetchReservations, addReservation, updateReservation, deleteReservation } = reservationsStore;
@@ -153,10 +192,50 @@
   const roomsStore = useRoomsStore();
   const { rooms } = storeToRefs(roomsStore);
   const { fetchRooms } = roomsStore;
+
+  const invoicesStore = useInvoicesStore();
+  const { addInvoice } = invoicesStore;
   
   const showAddReservationModal = ref(false);
   const showDeleteReservationModal = ref(false);
+  const showAddInvoiceModal = ref(false); 
   const isEditing = ref(false);
+
+  const newInvoice = ref({
+    reservation_id: null,
+    subject: '',
+    billing_start_date: '',
+    billing_end_date: '',
+    status: 'pending',
+  });
+
+  const handleAddInvoice = (reservation) => {
+
+    console.log('RESERVATION', reservation)
+    newInvoice.value = {
+      reservation_id: reservation.id,
+      subject: '', // Réinitialisé
+      billing_start_date: '', // Réinitialisé
+      billing_end_date: '', // Réinitialisé
+      status: 'pending', // Réinitialisé ou valeur par défaut
+    };
+    showAddInvoiceModal.value = true;
+  }
+
+  const saveInvoice = async () => {
+    try {
+      const responseAddInvoice = await addInvoice(newInvoice.value)
+      toast.success(responseAddInvoice.data.message)
+      showAddInvoiceModal.value = false;
+    } catch(err) {
+      if (err.response && err.response.data && err.response.data.errors) {
+        errors.value = err.response.data.errors; // Stocker les erreurs pour chaque champ
+        toast.error("Des erreurs de validation ont été détectées. Veuillez vérifier les champs.");
+      } else {
+        toast.error("Une erreur est survenue depuis le serveur lors de l'enregistrement de la réservation. Veuillez contacter votre administrateur.");
+      }
+    }
+  }
   
   const newReservation = ref({
     id: null,
@@ -172,7 +251,11 @@
     renter_id: '',
     room_id: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
+    subject: '',
+    billing_start_date: '',
+    billing_end_date: '',
+    status: '',
   });
   
   const toast = useToast();
