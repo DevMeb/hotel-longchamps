@@ -20,7 +20,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('reservations', ReservationController::class);
 
     Route::apiResource('invoices', InvoiceController::class);
-    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'displayPdf'])->name('invoices.displayPdf');
+    Route::get('invoices/{id}/pdf', [InvoiceController::class, 'displayPdf'])->name('invoices.displayPdf');
+    Route::post('/invoices/{id}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.sendEmail');
 
     Route::get('/validate-token', function () {
         return response()->json(['valid' => true]);

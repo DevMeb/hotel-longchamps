@@ -2,10 +2,12 @@
 
 namespace App\Http\Services;
 
+use App\Mail\InvoiceEmail;
 use App\Models\Invoice;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class InvoiceService
@@ -100,8 +102,6 @@ class InvoiceService
         $pdfName = str_replace([' ', '/', '\\'], '_', "{$roomerName}_{$roomName}_{$subject}_{$idInvoice}.pdf");
         $path = 'invoices/' . $pdfName;
 
-        //dd($invoice->toArray());
-
         $pdf = Pdf::loadView('invoices/pdf', ["invoice" => $invoice]);
 
         Storage::put($path, $pdf->output());
@@ -119,4 +119,53 @@ class InvoiceService
         return Storage::get($pdfPath);
     }
 
+    /**
+     * Envoyer une facture par email.
+     *
+     * @param \App\Models\Invoice $invoice
+     * @param array $emails
+     * @return void
+     * @throws \Exception
+     */
+    public function sendInvoiceByEmail($invoice, array $emails): void
+    {
+        // Valider les emails
+        $this->validateEmails($emails);
+
+        // Vérifier si le fichier PDF existe
+        $pdfPath = $invoice->pdf_path;
+        if (!$pdfPath || !Storage::exists($pdfPath)) {
+            throw new \Exception('Le fichier PDF de la facture est introuvable.');
+        }
+
+        // Envoyer l'email avec tous les destinataires
+        Mail::to($emails)->send(new InvoiceEmail($invoice));
+    }
+
+    /**
+     * Valider les adresses email.
+     *
+     * @param array $emails
+     * @return void
+     * @throws \Exception
+     */
+    public function validateEmails(array $emails): void
+    {
+        if (empty($emails)) {
+            throw new \Exception('Aucune adresse mail fournie.');
+        }
+
+        $invalidEmails = [];
+        $emailRegex = '/^[^\s@]+@[^\s@]+\.[^\s@]+$/';
+
+        foreach ($emails as $email) {
+            if (!preg_match($emailRegex, trim($email))) {
+                $invalidEmails[] = $email;
+            }
+        }
+
+        if (!empty($invalidEmails)) {
+            throw new \Exception('Les adresses email suivantes sont invalides : ' . implode(', ', $invalidEmails));
+        }
+    }
 }

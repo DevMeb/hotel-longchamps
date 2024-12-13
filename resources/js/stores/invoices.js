@@ -7,6 +7,7 @@ export const useInvoicesStore = defineStore('invoices', () => {
   const invoices = ref([]);
   const error = ref(null);
   const loading = ref(false);
+  const loadingEmail = ref(false);
 
   async function fetchInvoices() {
     loading.value = true;
@@ -72,5 +73,18 @@ export const useInvoicesStore = defineStore('invoices', () => {
     }
   }
 
-  return { invoices, error, loading, fetchInvoices, addInvoice, updateInvoice, deleteInvoice, getInvoicePdf };
+  async function sendEmail(invoiceId, emails) {
+    try {
+      loadingEmail.value = true
+      return await axios.post(`/api/invoices/${invoiceId}/send-email`, {
+        emails: emails,
+      });
+    } catch (err) {
+      throw err
+    } finally {
+      loadingEmail.value = false;
+    }
+  }
+
+  return { invoices, error, loading, loadingEmail, fetchInvoices, addInvoice, updateInvoice, deleteInvoice, getInvoicePdf, sendEmail };
 });

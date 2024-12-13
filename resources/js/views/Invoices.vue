@@ -73,7 +73,8 @@
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                           <button @click="displayInvoicePdf(invoice.id)" class="text-indigo-400 hover:text-indigo-300">Voir</button>
                           <button @click="editInvoice(invoice)" class="ml-4 text-blue-400 hover:text-blue-300">Éditer</button>
-                          <button @click="confirmDeleteInvoice(invoice)"class="ml-4 text-red-400 hover:text-red-300">Supprimer</button>
+                          <button @click="confirmDeleteInvoice(invoice)" class="ml-4 text-red-400 hover:text-red-300">Supprimer</button>
+                          <button @click="sendInvoicePdf(invoice)" class="ml-4 text-yellow-400 hover:text-v-300">Envoyer par mail</button>
                         </td>
                       </tr>
                     </tbody>
@@ -141,6 +142,38 @@
                 </div>
               </div>
             </div>
+
+            <!-- Modal d'envoi d'email -->
+            <div v-if="showSendInvoiceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                <h2 class="text-lg font-semibold mb-4">Envoyer la facture par email</h2>
+                <div>
+                  <label for="email" class="block text-sm font-medium text-gray-700">Adresse(s) email</label>
+                  <input
+                    v-model="emailAddresses"
+                    id="email"
+                    type="text"
+                    placeholder="Ajouter une ou plusieurs adresses email"
+                    class="w-full mt-2 p-2 border border-gray-300 rounded-md"
+                  />
+                  <p v-if="errors.emailAddresses" class="mt-2 text-sm text-red-600">{{ errors.emailAddresses }}</p>
+                  <p class="text-sm text-gray-500 mt-1">Séparez plusieurs adresses email par une virgule.</p>
+                </div>
+                <div class="flex justify-end mt-6">
+                  <button type="button" @click="showSendInvoiceModal = false;" class="mr-4 px-4 py-2 bg-gray-500 text-white rounded-md">
+                    Annuler
+                  </button>
+                  <button :disabled="loadingEmail" @click="confirmSendEmail" type="button" class="px-4 py-2 bg-blue-500 text-white rounded-md flex items-center justify-center">
+                    <svg v-if="loadingEmail" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Envoyer</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -155,12 +188,18 @@
   import { useToast } from 'vue-toastification';
   
   const invoicesStore = useInvoicesStore()
-  const { invoices, error, loading } = storeToRefs(invoicesStore);
-  const { fetchInvoices, updateInvoice, deleteInvoice, getInvoicePdf } = invoicesStore;
+  const { invoices, error, loading, loadingEmail } = storeToRefs(invoicesStore);
+  const { fetchInvoices, updateInvoice, deleteInvoice, getInvoicePdf, sendEmail } = invoicesStore;
   const toast = useToast();
   
   const showUpdateInvoiceModal = ref(false);
   const showDeleteInvoiceModal = ref(false);
+  const showSendInvoiceModal = ref(false);
+
+  // Emails à envoyer
+  const emailAddresses = ref('');
+  const invoiceToSendByMail = ref({})
+
   const updateInvoiceForm = ref({
     id: null,
     reservation_id: null,
@@ -170,6 +209,7 @@
     billing_end_date: '',
     status: '',
   });
+
   const invoiceToDelete = ref(null);
   
   const errors = ref({});
@@ -177,6 +217,41 @@
   onMounted(() => {
     fetchInvoices();
   });
+
+  // Méthode pour afficher la modal
+  function sendInvoicePdf(invoice) {
+    invoiceToSendByMail.value = invoice
+    // Simuler la récupération de l'email du tuteur
+    const tutorEmail = invoice?.reservation?.renter?.tutor?.email;
+    
+    // Préremplir le champ email
+    emailAddresses.value = tutorEmail || '';
+    showSendInvoiceModal.value = true;
+  }
+
+  // Méthode pour valider les emails
+  function validateEmails(emails) {
+    const emailList = emails.split(',').map(email => email.trim());
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    return emailList.every(email => emailRegex.test(email));
+  }
+
+  // Méthode pour confirmer l'envoi des emails
+  async function confirmSendEmail() {
+    if (!validateEmails(emailAddresses.value)) {
+      errors.value.emailAddresses = 'Veuillez saisir des adresses email valides.'
+      return
+    }
+    
+    try {
+      const response = await sendEmail(invoiceToSendByMail.value.id, emailAddresses.value)
+      toast.success(response.data.message);
+      showSendInvoiceModal.value = false;
+    } catch (err) {
+      toast.error("Une erreur est survenue lors de l'envoi de l'email");
+    }
+  }
 
   async function displayInvoicePdf(invoiceId) {
     try {

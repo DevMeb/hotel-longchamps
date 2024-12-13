@@ -7,6 +7,8 @@ use App\Http\Resources\InvoiceResource;
 use App\Http\Services\InvoiceService;
 use Illuminate\Http\JsonResponse;
 use App\Models\Invoice;
+use Exception;
+use Illuminate\Http\Request;
 
 class InvoiceController extends BaseController
 {
@@ -129,6 +131,23 @@ class InvoiceController extends BaseController
                 'Content-Disposition' => 'inline; filename="' . basename($invoice->pdf_path) . '"',
             ]);
             
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), [], 404);
+        }
+    }
+
+    public function sendEmail(Request $request, int $id)
+    {
+        try {
+            $invoice = $this->invoiceService->findInvoiceById($id);
+
+            // Récupérer et valider les emails
+            $emails = explode(',', $request->input('emails', ''));
+
+            // Utiliser le service pour envoyer l'email
+            $this->invoiceService->sendInvoiceByEmail($invoice, $emails);
+
+            return $this->sendResponse(new InvoiceResource($invoice), 'Email envoyé avec succès.', 200);
         } catch (\Exception $e) {
             return $this->sendError($e->getMessage(), [], 404);
         }
