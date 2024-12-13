@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel_app
+    container_name: hotel_laravel_app
     restart: always
     volumes:
       - .:/var/www/html
@@ -13,10 +13,13 @@ services:
       - "9000:9000" # PHP-FPM
     env_file:
       - .env
+    environment:
+      WWWUSER: ${UID:-1000}
+      WWWGROUP: ${GID:-1000}
 
   node:
     image: node:18-alpine
-    container_name: node
+    container_name: hotel_node
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
@@ -28,7 +31,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: nginx
+    container_name: hotel_nginx
     restart: always
     ports:
       - "8000:80" # Serveur Nginx
@@ -41,7 +44,7 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: db
+    container_name: hotel_db
     restart: always
     ports:
       - "3306:3306" # Accès à MySQL localement
@@ -55,7 +58,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
+    container_name: hotel_phpmyadmin
     depends_on:
       - db
     ports:
@@ -66,7 +69,7 @@ services:
 
   mailpit:
     image: axllent/mailpit
-    container_name: mailpit
+    container_name: hotel_mailpit
     restart: always
     ports:
       - "1025:1025"

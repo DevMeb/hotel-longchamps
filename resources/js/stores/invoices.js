@@ -58,5 +58,19 @@ export const useInvoicesStore = defineStore('invoices', () => {
     }
   }
 
-  return { invoices, error, loading, fetchInvoices, addInvoice, updateInvoice, deleteInvoice };
+  async function getInvoicePdf(invoiceId) {
+    try {
+      const response = await axios.get(`api/invoices/${invoiceId}/pdf`, {
+        responseType: 'blob', // Important : indique qu'on attend un fichier binaire
+      });
+  
+      // Créer une URL à partir du Blob pour l'affichage
+      const fileURL = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      return fileURL;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  return { invoices, error, loading, fetchInvoices, addInvoice, updateInvoice, deleteInvoice, getInvoicePdf };
 });

@@ -11,7 +11,6 @@ class Invoice extends Model
 {
     use HasFactory;
 
-    //AJOUTER UNE DATE DE DEBUT DE FACTURATION ET UNE DATE DE FIN
     protected $fillable = [
         'reservation_id',
         'subject',
@@ -21,6 +20,7 @@ class Invoice extends Model
         'issued_at',
         'paid_at',
         'status',
+        'pdf_path',
     ];
 
     protected $dates = [
@@ -81,5 +81,16 @@ class Invoice extends Model
             $roomResource['rent'], // Montant de la chambre en euros
             $this->created_at->format('d/m/Y') // Date de création de la facture
         );
+    }
+
+    public function getStatusTextAttribute(): string
+    {
+        $statusMap = [
+            'pending' => 'En attente d\'envoi',
+            'issued'  => 'Envoyé et en attente de paiement',
+            'paid'    => 'Envoyé et payé',
+        ];
+
+        return $statusMap[$this->status] ?? 'Statut inconnu';
     }
 }

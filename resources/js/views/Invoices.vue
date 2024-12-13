@@ -19,6 +19,7 @@
                   <table class="min-w-full divide-y divide-gray-700">
                     <thead>
                       <tr>
+                        <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-0">Id</th>
                         <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-0">Chambre</th>
                         <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-0">Locataire</th>
                         <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-0">Sujet</th>
@@ -27,27 +28,28 @@
                         <th class="px-3 py-3.5 text-left text-sm font-semibold text-white">Date d'émission</th>
                         <th class="px-3 py-3.5 text-left text-sm font-semibold text-white">Date de paiement</th>
                         <th class="px-3 py-3.5 text-left text-sm font-semibold text-white">Statut</th>
-                        <th class="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                          <span class="sr-only">Actions</span>
-                        </th>
+                        <th class="px-3 py-3.5 text-center text-sm font-semibold text-white">Actions</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-800">
                       <tr v-if="loading">
-                        <td colspan="5" class="whitespace-nowrap py-4 text-sm text-gray-300 text-center">Chargement...</td>
+                        <td colspan="10" class="whitespace-nowrap py-4 text-sm text-gray-300 text-center">Chargement...</td>
                       </tr>
                       <tr v-if="error && !loading">
-                        <td colspan="5" class="whitespace-nowrap py-4 text-sm text-red-500 text-center">{{ error }}</td>
+                        <td colspan="10" class="whitespace-nowrap py-4 text-sm text-red-500 text-center">{{ error }}</td>
                       </tr>
                       <tr v-else-if="invoices.length === 0 && !loading">
-                        <td colspan="5" class="whitespace-nowrap py-4 text-sm text-gray-300 text-center">Aucune facture trouvée.</td>
+                        <td colspan="10" class="whitespace-nowrap py-4 text-sm text-gray-300 text-center m-auto">Aucune facture trouvée.</td>
                       </tr>
                       <tr v-else v-for="invoice in invoices" :key="invoice.id">
                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-0">
-                          {{ invoice.reservation.renter.first_name  }} {{ invoice.reservation.renter.last_name }}
+                          {{ invoice.id }}
                         </td>
                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-0">
                           {{ invoice.reservation.room.name }}
+                        </td>
+                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-0">
+                          {{ invoice.reservation.renter.first_name  }} {{ invoice.reservation.renter.last_name }}
                         </td>
                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-0">
                           {{ invoice.subject }}
@@ -65,13 +67,13 @@
                               'text-green-500': invoice.status === 'paid'
                             }"
                           >
-                            {{ invoice.status }}
+                            {{ invoice.status_text }}
                           </span>
                         </td>
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                          <a @click="downloadInvoice(invoice.id)" href="#" class="text-indigo-400 hover:text-indigo-300">Télécharger</a>
-                          <a @click="editInvoice(invoice)" href="#" class="ml-4 text-blue-400 hover:text-blue-300">Éditer</a>
-                          <a @click="confirmDeleteInvoice(invoice)" href="#" class="ml-4 text-red-400 hover:text-red-300">Supprimer</a>
+                          <button @click="displayInvoicePdf(invoice.id)" class="text-indigo-400 hover:text-indigo-300">Voir</button>
+                          <button @click="editInvoice(invoice)" class="ml-4 text-blue-400 hover:text-blue-300">Éditer</button>
+                          <button @click="confirmDeleteInvoice(invoice)"class="ml-4 text-red-400 hover:text-red-300">Supprimer</button>
                         </td>
                       </tr>
                     </tbody>
@@ -121,7 +123,7 @@
                     <p v-if="errors.status" class="mt-2 text-sm text-red-600">{{ errors.status.join(' ') }}</p>
                   </div>
                   <div class="flex justify-end mt-4">
-                    <button type="button" @click="showUpdateInvoiceModal = false; resetForm();" class="mr-4 px-4 py-2 bg-gray-500 text-white rounded-md">Annuler</button>
+                    <button type="button" @click="showUpdateInvoiceModal = false;" class="mr-4 px-4 py-2 bg-gray-500 text-white rounded-md">Annuler</button>
                     <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-md">Mettre à jour</button>
                   </div>
                 </form>
@@ -154,7 +156,7 @@
   
   const invoicesStore = useInvoicesStore()
   const { invoices, error, loading } = storeToRefs(invoicesStore);
-  const { fetchInvoices, updateInvoice, deleteInvoice } = invoicesStore;
+  const { fetchInvoices, updateInvoice, deleteInvoice, getInvoicePdf } = invoicesStore;
   const toast = useToast();
   
   const showUpdateInvoiceModal = ref(false);
@@ -175,6 +177,17 @@
   onMounted(() => {
     fetchInvoices();
   });
+
+  async function displayInvoicePdf(invoiceId) {
+    try {
+      const pdfUrl = await getInvoicePdf(invoiceId);
+      
+      window.open(pdfUrl, '_blank');
+      
+    } catch (err) {
+      toast.error("Une erreur est survenue lors de l'affichage de la facture");
+    }
+  }
   
   async function modifyInvoice() {
     try {
@@ -197,7 +210,6 @@
   }
   
   function editInvoice(invoice) {
-    console.log('INVOICE DATA', invoice)
     updateInvoiceForm.value = {
       id: invoice.id,
       reservation_id: invoice.reservation.id,
@@ -227,15 +239,5 @@
       });
   }
   
-  function resetForm() {
-    newInvoice.value = {
-      subject: '',
-      billing_start_date: '',
-      billing_end_date: '',
-      status: 'pending',
-    };
-    errors.value = {};
-    isEditing.value = false;
-  }
-  </script>
+</script>
   
