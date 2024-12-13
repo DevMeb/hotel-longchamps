@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: hotel_laravel_app
     restart: always
     volumes:
@@ -37,7 +37,7 @@ services:
       - "8000:80" # Serveur Nginx
     volumes:
       - .:/var/www/html
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.dev.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app
       - node
