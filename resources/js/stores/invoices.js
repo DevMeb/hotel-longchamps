@@ -9,10 +9,11 @@ export const useInvoicesStore = defineStore('invoices', () => {
   const loading = ref(false);
   const loadingEmail = ref(false);
 
-  async function fetchInvoices() {
+  async function fetchInvoices(id = null) {
     loading.value = true;
+    const params = id ? { id: id } : {};
     try {
-      const response = await axios.get('api/invoices');
+      const response = await axios.get('api/invoices', { params });
       invoices.value = response.data.data;
 
       // Vérifier si le contenu est du JSON
@@ -83,6 +84,7 @@ export const useInvoicesStore = defineStore('invoices', () => {
       throw err
     } finally {
       loadingEmail.value = false;
+      await fetchInvoices()
     }
   }
 

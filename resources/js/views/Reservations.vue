@@ -180,6 +180,7 @@
   import { useRentersStore } from '@/stores/renters';
   import { useRoomsStore } from '@/stores/rooms';
   import { useInvoicesStore } from '@/stores/invoices';
+  import { useRoute } from 'vue-router';
 
   const reservationsStore = useReservationsStore();
   const { reservations, error, loading } = storeToRefs(reservationsStore);
@@ -192,6 +193,9 @@
   const roomsStore = useRoomsStore();
   const { rooms } = storeToRefs(roomsStore);
   const { fetchRooms } = roomsStore;
+
+  const route = useRoute()
+  const selectedReservationId = ref(route.query.id || null);
 
   const invoicesStore = useInvoicesStore();
   const { addInvoice } = invoicesStore;
@@ -211,7 +215,6 @@
 
   const handleAddInvoice = (reservation) => {
 
-    console.log('RESERVATION', reservation)
     newInvoice.value = {
       reservation_id: reservation.id,
       subject: '', // Réinitialisé
@@ -261,7 +264,7 @@
   const toast = useToast();
   
   onMounted(() => {
-    fetchReservations();
+    fetchReservations(selectedReservationId.value);
     fetchRenters();
     fetchRooms();
   });

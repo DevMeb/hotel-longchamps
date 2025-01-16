@@ -17,9 +17,15 @@ class InvoiceService
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getAllInvoices()
+    public function getAllInvoices($id = null)
     {
-        return Invoice::all();
+        $query = Invoice::with(['reservation']);
+
+        if ($id) {
+            $query->where('id', $id);
+        }
+
+        return $query->get();
     }
 
     /**

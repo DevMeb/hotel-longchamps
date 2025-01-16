@@ -7,6 +7,7 @@ use App\Http\Resources\ReservationResource;
 use App\Http\Services\ReservationService;
 use Illuminate\Http\JsonResponse;
 use App\Models\Reservation;
+use Illuminate\Http\Request;
 
 class ReservationController extends BaseController
 {
@@ -22,10 +23,11 @@ class ReservationController extends BaseController
      *
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $reservations = $this->reservationService->getAllReservations();
+            $id = $request->query('id');
+            $reservations = $this->reservationService->getAllReservations($id);
             return $this->sendResponse(ReservationResource::collection($reservations), 'Réservations récupérées avec succès.');
         } catch (\Exception $e) {
             return $this->sendError('Échec de la récupération des réservations : ' . $e->getMessage(), [], 500);

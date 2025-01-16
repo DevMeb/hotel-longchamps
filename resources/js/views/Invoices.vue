@@ -186,6 +186,10 @@
   import { storeToRefs } from 'pinia';
   import { ref, onMounted } from 'vue';
   import { useToast } from 'vue-toastification';
+  import { useRoute } from 'vue-router';
+
+  const route = useRoute()
+  const selectedInvoiceId = ref(route.query.id || null);
   
   const invoicesStore = useInvoicesStore()
   const { invoices, error, loading, loadingEmail } = storeToRefs(invoicesStore);
@@ -215,7 +219,7 @@
   const errors = ref({});
   
   onMounted(() => {
-    fetchInvoices();
+    fetchInvoices(selectedInvoiceId.value);
   });
 
   // Méthode pour afficher la modal

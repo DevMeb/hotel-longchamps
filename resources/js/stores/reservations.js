@@ -8,10 +8,12 @@ export const useReservationsStore = defineStore('reservations', () => {
   const error = ref(null);
   const loading = ref(false);
 
-  async function fetchReservations() {
-    loading.value = true;
+  async function fetchReservations(id = null) {
     try {
-      const response = await axios.get('api/reservations');
+      loading.value = true;
+      const params = id ? { id: id } : {};
+
+      const response = await axios.get('api/reservations', { params });
       reservations.value = response.data.data;
 
       // Vérifier si le contenu est du JSON

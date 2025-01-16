@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-      <img class="mx-auto h-10 w-auto" src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" />
+      <img class="mx-auto h-40 w-auto" :src="logoUrl" alt="Hotel Longchamps" />
       <h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">Connectez-vous à votre compte</h2>
     </div>
 
@@ -36,6 +36,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import logoUrl from '@/../images/hotel-logo.png';
 
 const name = ref('');
 const password = ref('');
