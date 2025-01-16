@@ -13,7 +13,9 @@
             </DisclosureButton>
           </div>
           <div class="flex flex-shrink-0 items-center">
-            <img class="h-8 w-auto" src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" />
+            <a href="/">
+              <img class="h-16 w-auto" :src="logoUrl" alt="Hotel Longchamps" />
+            </a>
           </div>
           <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4">
             <a v-for="item in navigation" :key="item.name" :href="item.href" :class="[item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white', 'rounded-md px-3 py-2 text-sm font-medium']" :aria-current="item.current ? 'page' : undefined">{{ item.name }}</a>
@@ -42,6 +44,7 @@ import { ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline';
+import logoUrl from '@/../images/hotel-logo.png';
 
 import { useAuthStore } from '@/stores/auth';
 

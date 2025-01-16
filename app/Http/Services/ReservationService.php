@@ -6,9 +6,15 @@ use App\Models\Reservation;
 
 class ReservationService
 {
-    public function getAllReservations()
+    public function getAllReservations($id = null)
     {
-        return Reservation::all();
+        $query = Reservation::with(['renter', 'room']);
+
+        if ($id) {
+            $query->where('id', $id);
+        }
+
+        return $query->get();
     }
 
     public function createReservation(array $data): Reservation

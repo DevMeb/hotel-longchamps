@@ -24,10 +24,11 @@ class InvoiceController extends BaseController
      *
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $invoices = $this->invoiceService->getAllInvoices();
+            $id = $request->query('id');
+            $invoices = $this->invoiceService->getAllInvoices($id);
             return $this->sendResponse(InvoiceResource::collection($invoices), 'Factures récupérées avec succès.');
         } catch (\Exception $e) {
             return $this->sendError('Échec de la récupération des factures : ' . $e->getMessage(), [], 500);
@@ -89,6 +90,11 @@ class InvoiceController extends BaseController
             }
 
             $updatedInvoice = $this->invoiceService->updateInvoice($invoice, $request->validated());
+
+            if ($request->input('status') === 'paid') {
+                $invoice->markAsPaid();
+            }
+
             return $this->sendResponse(new InvoiceResource($updatedInvoice), 'Facture mise à jour avec succès.', 200);
         } catch (\Exception $e) {
             return $this->sendError('Échec de la mise à jour de la facture : ' . $e->getMessage(), ['request' => $request->validated()], 500);
@@ -146,6 +152,8 @@ class InvoiceController extends BaseController
 
             // Utiliser le service pour envoyer l'email
             $this->invoiceService->sendInvoiceByEmail($invoice, $emails);
+
+            $invoice->markAsIssued();
 
             return $this->sendResponse(new InvoiceResource($invoice), 'Email envoyé avec succès.', 200);
         } catch (\Exception $e) {
