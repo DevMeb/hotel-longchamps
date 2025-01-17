@@ -15,7 +15,7 @@ Route::controller(RegisterController::class)->group(function(){
 });
 
 Route::middleware('auth:sanctum')->group( function () {
-    Route::get('/dashboard-data', [DashboardController::class, 'getDashboardData']);
+    Route::get('/dashboard', [DashboardController::class, 'getDashboardData']);
 
     Route::apiResource('tutors', TutorController::class);
     Route::apiResource('renters', RenterController::class);
