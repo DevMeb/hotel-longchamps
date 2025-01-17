@@ -139,23 +139,14 @@
                     <p v-if="errors.subject" class="mt-2 text-sm text-red-600">{{ errors.subject.join(' ') }}</p>
                   </div>
                   <div>
-                    <label for="billing_start_date" class="block text-sm font-medium leading-6 text-gray-900">Date de début</label>
+                    <label for="billing_start_date" class="block text-sm font-medium leading-6 text-gray-900">Date de début de facturation</label>
                     <input type="date" v-model="newInvoice.billing_start_date" id="billing_start_date" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6" />
                     <p v-if="errors.billing_start_date" class="mt-2 text-sm text-red-600">{{ errors.billing_start_date.join(' ') }}</p>
                   </div>
                   <div>
-                    <label for="billing_end_date" class="block text-sm font-medium leading-6 text-gray-900">Date de fin</label>
+                    <label for="billing_end_date" class="block text-sm font-medium leading-6 text-gray-900">Date de fin de facturation</label>
                     <input type="date" v-model="newInvoice.billing_end_date" id="billing_end_date" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6" />
                     <p v-if="errors.billing_end_date" class="mt-2 text-sm text-red-600">{{ errors.billing_end_date.join(' ') }}</p>
-                  </div>
-                  <div>
-                    <label for="status" class="block text-sm font-medium leading-6 text-gray-900">Statut</label>
-                    <select v-model="newInvoice.status" id="status" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6">
-                      <option value="pending">En attente</option>
-                      <option value="issued">Émise</option>
-                      <option value="paid">Payée</option>
-                    </select>
-                    <p v-if="errors.status" class="mt-2 text-sm text-red-600">{{ errors.status.join(' ') }}</p>
                   </div>
                   <div class="flex justify-end mt-4">
                     <button type="button" @click="showAddInvoiceModal = false; resetForm();" class="mr-4 px-4 py-2 bg-gray-500 text-white rounded-md">Annuler</button>
@@ -210,7 +201,6 @@
     subject: '',
     billing_start_date: '',
     billing_end_date: '',
-    status: 'pending',
   });
 
   const handleAddInvoice = (reservation) => {

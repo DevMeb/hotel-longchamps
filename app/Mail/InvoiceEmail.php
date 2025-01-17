@@ -53,7 +53,11 @@ class InvoiceEmail extends Mailable
     {
         return [
             Attachment::fromStorage($this->invoice->pdf_path)
-                    ->withMime('application/pdf'),
+                      ->withMime('application/pdf'),
+
+            Attachment::fromStorageDisk('local', 'RIB.pdf')
+                      ->as('RIB_Hotel_Longchamps.pdf') // Nom du fichier dans l'email
+                      ->withMime('application/pdf'),
         ];
     }
 }

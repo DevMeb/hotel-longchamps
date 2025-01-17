@@ -134,11 +134,11 @@ const statusClass = (status) => {
 const statusText = (status) => {
   switch (status) {
     case 'paid':
-      return 'Payée';
+      return 'Envoyé et Payée';
     case 'issued':
-      return 'Envoyée';
+      return 'Envoyée et en attente de paiement';
     case 'pending':
-      return 'En attente';
+      return 'En attente d\'envoi';
     default:
       return 'Inconnu';
   }

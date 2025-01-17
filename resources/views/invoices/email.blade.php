@@ -47,7 +47,7 @@
             <p>Bonjour,</p>
             <p>Vous trouverez en pièce jointe la facture concernant la réservation suivante :</p>
             <ul>
-                <li><strong>Locataire :</strong> {{ $invoice->reservation->renter->first_name }}</li>
+                <li><strong>Locataire :</strong> {{ $invoice->reservation->renter->first_name }} {{ $invoice->reservation->renter->last_name }}</li>
                 <li><strong>Période :</strong> du {{ \Carbon\Carbon::parse($invoice->billing_start_date)->format('d/m/Y') }}
                     au {{ \Carbon\Carbon::parse($invoice->billing_end_date)->format('d/m/Y') }}</li>
                 <li><strong>Montant :</strong> {{ number_format($invoice->reservation->room->rent / 100, 2, '.', ' ') }} €</li>

@@ -145,7 +145,7 @@ class InvoiceService
         }
 
         // Envoyer l'email avec tous les destinataires
-        Mail::to($emails)->send(new InvoiceEmail($invoice));
+        Mail::to($emails)->cc(env('MAIL_COPIE_INVOICE'))->send(new InvoiceEmail($invoice));
     }
 
     /**

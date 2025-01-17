@@ -160,4 +160,17 @@ class InvoiceController extends BaseController
             return $this->sendError($e->getMessage(), [], 404);
         }
     }
+
+    function markAsPaid(int $id) 
+    {
+        try {
+            $invoice = $this->invoiceService->findInvoiceById($id);
+
+            $invoice->markAsPaid();
+
+            return $this->sendResponse(new InvoiceResource($invoice), 'La facture a été marquée comme payée.', 200);
+        } catch (\Exception $e) {
+            return $this->sendError($e->getMessage(), [], 404);
+        }
+    }
 }
