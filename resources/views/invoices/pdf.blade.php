@@ -75,15 +75,10 @@
 
         <!-- Content -->
         <div class="content">
-            <p><strong>Locataire :</strong> {{ $invoice->reservation->renter->first_name }}</p>
+            <p><strong>Locataire :</strong> {{ $invoice->reservation->renter->first_name . ' ' . $invoice->reservation->renter->last_name }}</p>
             <p><strong>Objet :</strong> {{ $invoice->subject }}</p>
             <p>
-                Je soussigné, <strong>MR MEBARKI</strong>, gérant du logement situé au 
-                <strong>LE LONGCHAMP</strong>, 87 Avenue Marechal Foch, 77500 CHELLES, 
-                réserve une chambre à <strong>{{ $invoice->reservation->renter->first_name }}</strong>, 
-                pour la période du <strong>{{ \Carbon\Carbon::parse($invoice->billing_start_date)->format('d/m/Y') }}</strong> 
-                au <strong>{{ \Carbon\Carbon::parse($invoice->billing_end_date)->format('d/m/Y') }}</strong>, 
-                pour un montant de <strong>{{ number_format($invoice->reservation->room->rent / 100, 2, '.', ' ') }} €</strong>.
+                {{ $invoice->description }}
             </p>
             <p><strong>Chelles le :</strong> {{ \Carbon\Carbon::now()->format('d/m/Y') }}</p>
         </div>
@@ -92,7 +87,7 @@
         <div class="footer">
             <p><strong>Paiement des réceptions</strong></p>
             <p>RIB en PJ</p>
-            <p><strong>MR MEBARKI</strong> | 07 61 13 83 10</p>
+            <p><strong>MR MEBARKI Hachemi</strong></p>
         </div>
     </div>
 </body>

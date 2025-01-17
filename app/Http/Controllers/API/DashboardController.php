@@ -10,10 +10,6 @@ use App\Models\Invoice;
 
 class DashboardController extends Controller
 {
-    // Statuts de facture
-    private const STATUS_PENDING = 'pending';
-    private const STATUS_ISSUED = 'issued';
-    private const STATUS_PAID = 'paid';
 
     public function getDashboardData(Request $request)
     {
@@ -21,181 +17,83 @@ class DashboardController extends Controller
             $currentYear = $request->input('year', Carbon::now()->year);
             $currentMonth = $request->input('month', Carbon::now()->month);
 
-            // Calculs
-            $reservationCount = $this->getReservationCount($currentYear, $currentMonth);
-            $invoiceCount = $this->getInvoiceCount($currentYear, $currentMonth);
-            $potentialRevenue = $this->calculatePotentialRevenue($currentYear, $currentMonth);
-            $actualRevenue = $this->getActualRevenue($currentYear, $currentMonth);
-            $unsentInvoices = $this->getUnsentInvoices($currentYear, $currentMonth);
-            $sentUnpaidInvoices = $this->getSentUnpaidInvoices($currentYear, $currentMonth);
-            $reservationsWithoutInvoices = $this->getReservationsWithoutInvoices($currentYear, $currentMonth);
-            $sentPaidInvoices = $this->getSentPaidInvoices($currentYear, $currentMonth);
+            // Étape 1 : Récupérer les réservations pour la période sélectionnée (sans invoices)
+            $reservations = $this->getReservations($currentYear, $currentMonth);
 
-            // Calcul de la différence de CA
-            $revenueDifference = ($actualRevenue - $potentialRevenue) / 100;
+            foreach ($reservations as $reservation) {
+                // Étape 2 : Récupérer les factures groupées par statut pour chaque réservation
+                $reservation->invoices = $this->getInvoiceAmountByStatus($reservation->id, $currentYear, $currentMonth);
+
+                // Étape 3 : Calculs des montants
+                $reservation->expected_amount = $this->calculateExpectedAmount($reservation->invoices);
+                $reservation->actual_amount = $this->calculateActualAmount($reservation->invoices);
+                $reservation->difference = $reservation->expected_amount - $reservation->actual_amount;
+            }
+
+            // Calcul des totaux globaux
+            $totalExpectedAmount = $reservations->sum('expected_amount');
+            $totalActualAmount = $reservations->sum('actual_amount');
+            $totalDifference = $totalExpectedAmount - $totalActualAmount;
 
             return response()->json([
-                'reservationCount' => $reservationCount,
-                'invoiceCount' => $invoiceCount,
-                'potentialRevenue' => $potentialRevenue / 100,
-                'actualRevenue' => $actualRevenue / 100,
-                'unsentInvoices' => $unsentInvoices,
-                'sentUnpaidInvoices' => $sentUnpaidInvoices,
-                'reservationsWithoutInvoices' => $reservationsWithoutInvoices,
-                'revenueDifference' => $revenueDifference,
-                'sentPaidInvoices' => $sentPaidInvoices,
+                'reservations' => $reservations,
+                'total_reservations' => $reservations->count(),
+                'total_expected_amount' => $totalExpectedAmount,
+                'total_actual_amount' => $totalActualAmount,
+                'total_difference' => $totalDifference,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Une erreur est survenue lors de la récupération des données du tableau de bord.',
+                'message' => 'Erreur lors de la récupération des données du tableau de bord.',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
-    // Méthodes dédiées
-
-    private function filterByMonthAndYear($query, $year, $month)
-    {
-        return $query->whereYear('start_date', $year)
-                     ->whereMonth('start_date', $month)
-                     ->orWhere(function ($subQuery) use ($year, $month) {
-                         $subQuery->whereYear('end_date', $year)
-                                  ->whereMonth('end_date', $month);
-                     })
-                     ->orWhere(function ($subQuery) use ($year, $month) {
-                         $subQuery->whereYear('start_date', '<=', $year)
-                                  ->whereYear('end_date', '>=', $year)
-                                  ->whereMonth('start_date', '<=', $month)
-                                  ->whereMonth('end_date', '>=', $month);
-                     });
-    }
-
-    private function getReservationCount($year, $month)
+    private function getReservations($year, $month)
     {
         return Reservation::where(function ($query) use ($year, $month) {
-            $this->filterByMonthAndYear($query, $year, $month);
-        })->count();
+                    $query->whereYear('start_date', '<=', $year) // La réservation a commencé avant ou pendant la période sélectionnée
+                        ->where(function ($subQuery) use ($year, $month) {
+                            $subQuery->whereYear('end_date', '>=', $year) // Elle finit après la période sélectionnée
+                                    ->orWhereNull('end_date'); // Ou bien elle est toujours en cours
+                        });
+                })
+                ->with(['room', 'renter']) // Récupère les infos mais pas les factures ici
+                ->get();
     }
 
-    private function getInvoiceCount($year, $month)
+
+    private function getInvoiceAmountByStatus($reservationId, $year, $month)
     {
-        return Invoice::whereHas('reservation', function ($query) use ($year, $month) {
-            $this->filterByMonthAndYear($query, $year, $month);
-        })->count();
+        return Invoice::where('reservation_id', $reservationId)
+                    ->whereYear('billing_start_date', $year)
+                    ->whereMonth('billing_start_date', $month)
+                    ->select(['id', 'status', 'reservation_id', 'billing_start_date', 'billing_end_date', 'subject'])
+                    ->with(['reservation.room' => function ($query) {
+                        $query->select('id', 'rent'); // Récupérer uniquement le montant du loyer
+                    }])
+                    ->get()
+                    ->map(function ($invoice) {
+                        return [
+                            'id' => $invoice->id,
+                            'status' => $invoice->status,
+                            'amount' => $invoice->reservation->room->rent,
+                            'subject' => $invoice->subject,
+                        ];
+                    })
+                    ->groupBy('status'); // Grouper par statut
     }
 
-    private function calculatePotentialRevenue($year, $month)
+    private function calculateExpectedAmount($invoicesByStatus)
     {
-        $reservationsWithoutInvoices = $this->getReservationsWithoutInvoices($year, $month)
-            ->sum(fn($reservation) => $reservation['amount'] * 100);
-
-        $unsentInvoices = $this->getUnsentInvoices($year, $month)
-            ->sum(fn($invoice) => $invoice['amount'] * 100);
-
-        $sentUnpaidInvoices = $this->getSentUnpaidInvoices($year, $month)
-            ->sum(fn($invoice) => $invoice['amount'] * 100);
-
-        $sentPaidInvoices = $this->getSentPaidInvoices($year, $month)
-            ->sum(fn($invoice) => $invoice['amount'] * 100);
-
-        return $reservationsWithoutInvoices + $unsentInvoices + $sentUnpaidInvoices + $sentPaidInvoices;
+        return collect($invoicesByStatus)
+            ->map(fn($invoices) => collect($invoices)->sum('amount'))
+            ->sum();
     }
 
-    private function getActualRevenue($year, $month)
+    private function calculateActualAmount($invoicesByStatus)
     {
-        return Invoice::where('status', self::STATUS_PAID)
-                      ->whereHas('reservation', function ($query) use ($year, $month) {
-                          $this->filterByMonthAndYear($query, $year, $month);
-                      })
-                      ->join('reservations', 'invoices.reservation_id', '=', 'reservations.id')
-                      ->join('rooms', 'reservations.room_id', '=', 'rooms.id')
-                      ->sum('rooms.rent');
-    }
-
-    private function getUnsentInvoices($year, $month)
-    {
-        return Invoice::whereNull('issued_at')
-                      ->whereNull('paid_at')
-                      ->where('status', self::STATUS_PENDING)
-                      ->whereHas('reservation', function ($query) use ($year, $month) {
-                          $this->filterByMonthAndYear($query, $year, $month);
-                      })
-                      ->with(['reservation.room'])
-                      ->get()
-                      ->map(function ($invoice) {
-                          return [
-                              'id' => $invoice->id,
-                              'subject' => $invoice->subject,
-                              'status' => $invoice->status,
-                              'amount' => $invoice->reservation->room->rent / 100,
-                              'reservation_id' => $invoice->reservation->id,
-                          ];
-                      });
-    }
-
-    private function getSentUnpaidInvoices($year, $month)
-    {
-        return Invoice::whereNotNull('issued_at')
-                      ->whereNull('paid_at')
-                      ->where('status', self::STATUS_ISSUED)
-                      ->whereHas('reservation', function ($query) use ($year, $month) {
-                          $this->filterByMonthAndYear($query, $year, $month);
-                      })
-                      ->with(['reservation.room'])
-                      ->get()
-                      ->map(function ($invoice) {
-                          return [
-                              'id' => $invoice->id,
-                              'subject' => $invoice->subject,
-                              'issued_at' => $invoice->issued_at,
-                              'status' => $invoice->status,
-                              'amount' => $invoice->reservation->room->rent / 100,
-                              'reservation_id' => $invoice->reservation->id,
-                          ];
-                      });
-    }
-
-    private function getReservationsWithoutInvoices($year, $month)
-    {
-        return Reservation::where(function ($query) use ($year, $month) {
-            $this->filterByMonthAndYear($query, $year, $month);
-        })
-        ->whereDoesntHave('invoices')
-        ->with(['room', 'renter'])
-        ->get()
-        ->map(function ($reservation) {
-            return [
-                'id' => $reservation->id,
-                'start_date' => $reservation->start_date,
-                'end_date' => $reservation->end_date,
-                'room_name' => $reservation->room->name,
-                'renter_name' => $reservation->renter->first_name . ' ' . $reservation->renter->last_name,
-                'amount' => $reservation->room->rent / 100,
-            ];
-        });
-    }
-
-    private function getSentPaidInvoices($year, $month)
-    {
-        return Invoice::whereNotNull('issued_at')
-                      ->whereNotNull('paid_at')
-                      ->where('status', self::STATUS_PAID)
-                      ->whereHas('reservation', function ($query) use ($year, $month) {
-                          $this->filterByMonthAndYear($query, $year, $month);
-                      })
-                      ->with(['reservation.room'])
-                      ->get()
-                      ->map(function ($invoice) {
-                          return [
-                              'id' => $invoice->id,
-                              'subject' => $invoice->subject,
-                              'issued_at' => $invoice->issued_at,
-                              'paid_at' => $invoice->paid_at,
-                              'status' => $invoice->status,
-                              'amount' => $invoice->reservation->room->rent / 100,
-                              'reservation_id' => $invoice->reservation->id,
-                          ];
-                      });
+        return collect($invoicesByStatus)->get('paid', collect())->sum('amount');
     }
 }

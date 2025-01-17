@@ -1,235 +1,193 @@
 <template>
   <navbar></navbar>
-  <div class="min-h-screen bg-gray-800 p-4">
-    <div class="max-w-7xl mx-auto mt-6">
-      <h1 class="text-3xl font-bold text-white mb-6">Tableau de bord</h1>
+  <div class="bg-gray-900 min-h-screen p-6">
+    <h1 class="text-3xl font-bold text-white mb-6">Tableau de Bord</h1>
 
-      <!-- Sélecteur de mois -->
-      <div class="flex items-center justify-end mb-6">
-        <label for="month-selector" class="text-white mr-4">Sélectionner un mois :</label>
-        <input
-          type="month"
-          id="month-selector"
-          v-model="selectedMonth"
-          @change="fetchDashboardData"
-          class="bg-gray-700 text-white rounded-md px-4 py-2 border border-gray-600"
-        />
+    <!-- Sélection du mois et de l'année -->
+    <div class="flex items-center justify-end mb-6">
+      <label for="month-selector" class="text-white mr-4">Sélectionner un mois :</label>
+      <input
+        type="month"
+        id="month-selector"
+        v-model="selectedMonth"
+        @change="fetchDashboardData"
+        class="bg-gray-700 text-white rounded-md px-4 py-2 border border-gray-600"
+      />
+    </div>
+
+    <!-- Résumé général -->
+    <div class="grid grid-cols-3 gap-4 text-white mb-6">
+      <div class="bg-blue-600 p-4 rounded shadow-md">
+        Total Réservations : {{ dashboard.total_reservations }}
       </div>
+      <div class="bg-green-600 p-4 rounded shadow-md">
+        Montant Total Facturé : {{ (dashboard.total_actual_amount / 100).toFixed(2) }} €
+      </div>
+      <div class="bg-yellow-600 p-4 rounded shadow-md">
+        Différence Totale : {{ (dashboard.total_difference / 100).toFixed(2) }} €
+      </div>
+    </div>
 
-      <!-- Statistiques principales -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        <div
-          v-for="(stat, index) in stats"
-          :key="index"
-          :class="stat.color"
-          class="text-white p-6 rounded-lg shadow-md text-center"
-        >
-          <h2 class="text-4xl font-bold">{{ stat.value }}</h2>
-          <p class="text-gray-200 mt-2">{{ stat.label }}</p>
+    <!-- Détails des réservations et factures -->
+    <div class="grid grid-cols-1 gap-6">
+      <div
+        v-for="reservation in dashboard.reservations"
+        :key="reservation.id"
+        @click="goToReservation(reservation.id)"
+        class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 transition-all duration-200
+              hover:bg-gray-700 hover:shadow-md cursor-pointer"
+      >
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-indigo-400 flex items-center">
+            <span class="mr-2">🏠</span> Chambre {{ reservation.room.name }}
+          </h2>
+          <span class="text-sm bg-gray-700 text-white px-3 py-1 rounded-full">
+            {{ reservation.end_date ? 'Terminée' : 'En cours' }}
+          </span>
         </div>
-      </div>
 
-      <!-- Section dynamique -->
-      <template v-for="(section, index) in dashboardSections" :key="index">
-        <div v-if="section.data.length > 0" class="bg-gray-700 p-6 rounded-lg shadow-md mt-6">
-          <h2 class="text-2xl font-bold text-white mb-4">{{ section.title }}</h2>
-          <div class="overflow-x-auto">
-            <table class="min-w-full bg-gray-800 border border-gray-700 text-sm text-left text-gray-200">
-              <thead class="bg-gray-600 text-gray-300">
-                <tr>
-                  <th
-                    v-for="(col, colIndex) in section.columns"
-                    :key="colIndex"
-                    class="py-3 px-4 border-b"
-                  >
-                    {{ col.label }}
-                  </th>
-                  <th class="py-3 px-4 border-b">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in section.data" :key="item.id" class="hover:bg-gray-700">
-                  <td
-                    v-for="(col, colIndex) in section.columns"
-                    :key="colIndex"
-                    class="py-3 px-4 border-b"
-                  >
-                    <!-- Formattage des dates -->
-                    <template v-if="col.field === 'issued_at' || col.field === 'paid_at' || col.field === 'start_date' || col.field === 'end_date'">
-                      {{ formatDateTime(item[col.field]) }}
-                    </template>
-                    <!-- Tags pour les statuts -->
-                    <template v-else-if="col.field === 'status'">
-                      <span :class="statusClass(item[col.field])" class="px-2 py-1 rounded-md text-xs font-semibold">
-                        {{ statusText(item[col.field]) }}
-                      </span>
-                    </template>
-                    <!-- Données normales -->
-                    <template v-else>
-                      {{ item[col.field] }}
-                    </template>
-                  </td>
-                  <td class="py-3 px-4 border-b">
-                    <button
-                      v-for="action in section.actions"
-                      :key="action.label"
-                      :class="action.buttonClass"
-                      @click="action.handler(item)"
-                      class="mr-2 py-2 px-4 rounded-md flex items-center gap-2"
-                    >
-                      <span>{{ action.label }}</span>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="mt-2 space-y-2">
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">👤</span>Locataire :
+            <span class="font-semibold text-white ml-1">
+              {{ reservation.renter.first_name }} {{ reservation.renter.last_name }}
+            </span>
+          </p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">📅</span>Période :
+            <span class="ml-1">
+              {{ formatDate(reservation.start_date) }} -
+              {{ reservation.end_date ? formatDate(reservation.end_date) : 'En cours' }}
+            </span>
+          </p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">💰</span>Montant prévisionnel :
+            <span class="ml-1 text-yellow-400 font-semibold">
+              {{ (reservation.expected_amount / 100).toFixed(2) }} €
+            </span>
+          </p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">💵</span>Montant facturé :
+            <span class="ml-1 text-green-400 font-semibold">
+              {{ (reservation.actual_amount / 100).toFixed(2) }} €
+            </span>
+          </p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">⚖️</span>Différence :
+            <span class="ml-1 text-red-400 font-semibold">
+              {{ (reservation.difference / 100).toFixed(2) }} €
+            </span>
+          </p>
+        </div>
+
+        <!-- Section des factures -->
+        <div v-if="Object.keys(reservation.invoices).length > 0" class="mt-4">
+          <button
+            @click.stop="toggleInvoices(reservation.id)"
+            class="w-full flex items-center justify-between bg-gray-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-gray-600 transition-all"
+          >
+            <span class="text-lg">📜 Factures</span>
+            <span :class="{ 'rotate-180': expandedReservation === reservation.id }" class="transition-transform">🔽</span>
+          </button>
+
+          <div
+            v-if="expandedReservation === reservation.id"
+            class="mt-3 bg-gray-900 p-4 rounded-lg border border-gray-700"
+          >
+            <div v-for="(invoices, status) in reservation.invoices" :key="status" class="mt-2">
+              <h4 class="text-md font-semibold text-gray-200 flex items-center">
+                <span class="bg-gray-500 text-white px-2 py-1 rounded-md text-xs">
+                  {{ statusText(status) }}
+                </span>
+              </h4>
+              <ul class="mt-1 space-y-2">
+                <li
+                  v-for="invoice in invoices"
+                  :key="invoice.id"
+                  @click.stop="goToInvoice(invoice.id)"
+                  class="flex justify-between items-center bg-gray-800 p-3 rounded-md cursor-pointer transition-all duration-200
+                        hover:bg-gray-700 hover:shadow-md"
+                >
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-400 group-hover:text-indigo-400 transition-all duration-200">📝</span>
+                    <span class="text-gray-300 group-hover:text-indigo-300 transition-all duration-200">
+                      - {{ invoice.subject || `Facture #${invoice.id}` }}
+                    </span>
+                  </div>
+                  <span class="text-indigo-300 font-semibold group-hover:text-indigo-500 transition-all duration-200">
+                    {{ (invoice.amount / 100).toFixed(2) }} €
+                  </span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </template>
+        <div v-else class="mt-4 text-red-400 text-center">🚫 Aucune facture générée</div>
+      </div>
     </div>
   </div>
 </template>
 
-
 <script setup>
-import { ref, onMounted } from 'vue';
 import Navbar from '@/components/Navbar.vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-const stats = ref([]);
-const dashboardSections = ref([]);
+// Sélection du mois et de l'année
+const selectedMonth = ref(new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0'));
+const dashboard = ref([]);
 
-const selectedMonth = ref(new Date().toISOString().slice(0, 7)); // Initialise au mois courant
+const expandedReservation = ref(null);
 
-
-/** Formate les dates au format d/m/Y H:i:s */
-const formatDateTime = (dateString) => {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+const toggleInvoices = (reservationId) => {
+  expandedReservation.value = expandedReservation.value === reservationId ? null : reservationId;
 };
 
-/** Génère une classe CSS pour le statut */
-const statusClass = (status) => {
-  switch (status) {
-    case 'paid':
-      return 'bg-green-500 text-white';
-    case 'issued':
-      return 'bg-blue-500 text-white';
-    case 'pending':
-      return 'bg-yellow-500 text-black';
-    default:
-      return 'bg-gray-500 text-white';
-  }
-};
-
-/** Affiche un texte clair pour le statut */
-const statusText = (status) => {
-  switch (status) {
-    case 'paid':
-      return 'Payée';
-    case 'issued':
-      return 'Envoyée';
-    case 'pending':
-      return 'En attente';
-    default:
-      return 'Inconnu';
-  }
-};
-
+// Charger les données depuis l'API
 const fetchDashboardData = async () => {
   try {
     const [year, month] = selectedMonth.value.split('-');
-    const response = await axios.get('/api/dashboard-data', {
-      params: { year, month },
-    });
-
-    stats.value = [
-      { label: 'Réservations du mois courant', value: response.data.reservationCount, color: 'bg-gradient-to-r from-blue-500 to-blue-600' },
-      { label: 'Factures générées ce mois', value: response.data.invoiceCount, color: 'bg-gradient-to-r from-indigo-500 to-indigo-600' },
-      { label: 'CA potentiel à facturer', value: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(response.data.potentialRevenue), color: 'bg-gradient-to-r from-green-500 to-green-600' },
-      { label: 'CA facturé réellement', value: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(response.data.actualRevenue), color: 'bg-gradient-to-r from-teal-500 to-teal-600' },
-      { label: 'Différence entre CA généré et potentiel', value: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(response.data.revenueDifference), color: 'bg-gradient-to-r from-red-500 to-red-600' },
-    ];
-
-    dashboardSections.value = [
-      {
-        title: 'Factures envoyées et payées',
-        data: response.data.sentPaidInvoices,
-        columns: [
-          { label: 'Facture ID', field: 'id' },
-          { label: 'Sujet', field: 'subject' },
-          { label: 'Statut', field: 'status' },
-          { label: 'Date d\'envoi', field: 'issued_at' },
-          { label: 'Date de paiement', field: 'paid_at' },
-          { label: 'Montant (€)', field: 'amount' },
-        ],
-        actions: [
-          { label: 'Voir la réservation', buttonClass: 'bg-indigo-600 hover:bg-indigo-700 text-white', handler: (item) => router.push({ name: 'Reservations', query: { id: item.reservation_id } }) },
-          { label: 'Voir la facture', buttonClass: 'bg-blue-600 hover:bg-blue-700 text-white', handler: (item) => router.push({ name: 'Invoices', query: { id: item.id } }) },
-        ],
-      },
-      {
-        title: 'Réservations sans facture générée',
-        data: response.data.reservationsWithoutInvoices,
-        columns: [
-          { label: 'Réservation ID', field: 'id' },
-          { label: 'Date de début', field: 'start_date' },
-          { label: 'Date de fin', field: 'end_date' },
-          { label: 'Locataire', field: 'renter_name' },
-          { label: 'Chambre', field: 'room_name' },
-          { label: 'Montant (€)', field: 'amount' },
-        ],
-        actions: [
-          { label: 'Voir la réservation', buttonClass: 'bg-indigo-600 hover:bg-indigo-700 text-white', handler: (item) => router.push({ name: 'Reservations', query: { id: item.id } }) },
-        ],
-      },
-      {
-        title: 'Factures envoyées mais non payées',
-        data: response.data.sentUnpaidInvoices,
-        columns: [
-          { label: 'Facture ID', field: 'id' },
-          { label: 'Réservation ID', field: 'reservation_id' },
-          { label: 'Sujet', field: 'subject' },
-          { label: 'Statut', field: 'status' },
-          { label: 'Date d\'envoi', field: 'issued_at' },
-          { label: 'Montant (€)', field: 'amount' },
-        ],
-        actions: [
-          { label: 'Voir la facture', buttonClass: 'bg-blue-600 hover:bg-blue-700 text-white', handler: (item) => router.push({ name: 'Invoices', query: { id: item.id } }) },
-          { label: 'Voir la réservation', buttonClass: 'bg-indigo-600 hover:bg-indigo-700 text-white', handler: (item) => router.push({ name: 'Reservations', query: { id: item.reservation_id } }) },
-        ],
-      },
-      {
-        title: 'Factures non envoyées',
-        data: response.data.unsentInvoices,
-        columns: [
-          { label: 'Facture ID', field: 'id' },
-          { label: 'Réservation ID', field: 'reservation_id' },
-          { label: 'Sujet', field: 'subject' },
-          { label: 'Statut', field: 'status' },
-          { label: 'Date d\'envoi', field: 'issued_at' },
-          { label: 'Montant (€)', field: 'amount' },
-        ],
-        actions: [
-          { label: 'Voir la facture', buttonClass: 'bg-blue-600 hover:bg-blue-700 text-white', handler: (item) => router.push({ name: 'Invoices', query: { id: item.id } }) },
-          { label: 'Voir la réservation', buttonClass: 'bg-indigo-600 hover:bg-indigo-700 text-white', handler: (item) => router.push({ name: 'Reservations', query: { id: item.reservation_id } }) },
-        ],
-      },
-    ];
+    const response = await axios.get(`/api/dashboard?month=${month}&year=${year}`);
+    dashboard.value = response.data;
   } catch (error) {
-    console.error('Erreur lors du chargement des données du dashboard :', error);
+    console.error('Erreur lors du chargement du tableau de bord', error);
   }
 };
 
-onMounted(() => {
-  fetchDashboardData();
-});
+// Fonction pour afficher les statuts des factures de manière lisible
+const statusText = (status) => {
+  const statuses = {
+    pending: '🟡 En attente',
+    issued: '🟢 Émise',
+    paid: '🔵 Payée'
+  };
+  return statuses[status] || '⚪ Inconnu';
+};
+
+// Formater les dates en `DD/MM/YYYY`
+const formatDate = (dateString) => {
+  if (!dateString) return "En cours";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("fr-FR");
+};
+
+onMounted(fetchDashboardData);
+
+const goToReservation = (reservationId) => {
+  router.push({ name: 'Reservations', query: { id: reservationId } });
+};
+
+const goToInvoice = (invoiceId) => {
+  router.push({ name: 'Invoices', query: { id: invoiceId } });
+};
 </script>
+
+<style scoped>
+.grid-cols-3 div {
+  text-align: center;
+  font-weight: bold;
+}
+</style>

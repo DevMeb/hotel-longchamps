@@ -71,11 +71,38 @@
                           </span>
                         </td>
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                          <!-- Bouton Voir toujours visible -->
                           <button @click="displayInvoicePdf(invoice.id)" class="text-indigo-400 hover:text-indigo-300">Voir</button>
-                          <button @click="editInvoice(invoice)" class="ml-4 text-blue-400 hover:text-blue-300">Éditer</button>
-                          <button @click="confirmDeleteInvoice(invoice)" class="ml-4 text-red-400 hover:text-red-300">Supprimer</button>
-                          <button @click="sendInvoicePdf(invoice)" class="ml-4 text-yellow-400 hover:text-v-300">Envoyer par mail</button>
-                        </td>
+                      
+                          <!-- Bouton Éditer seulement si la facture est en attente ou envoyée -->
+                          <button v-if="invoice.status === 'pending' || invoice.status === 'issued'" 
+                                  @click="editInvoice(invoice)" 
+                                  class="ml-4 text-blue-400 hover:text-blue-300">
+                              Éditer
+                          </button>
+                      
+                          <!-- Bouton Supprimer seulement si la facture est en attente ou envoyée -->
+                          <button v-if="invoice.status === 'pending' || invoice.status === 'issued'" 
+                                  @click="confirmDeleteInvoice(invoice)" 
+                                  class="ml-4 text-red-400 hover:text-red-300">
+                              Supprimer
+                          </button>
+                      
+                          <!-- Bouton Envoyer par mail seulement si la facture est en attente -->
+                          <button v-if="invoice.status === 'pending'" 
+                                  @click="sendInvoicePdf(invoice)" 
+                                  class="ml-4 text-yellow-400 hover:text-yellow-300">
+                              Envoyer par mail
+                          </button>
+                      
+                          <!-- Bouton Marquer comme payée seulement si la facture est envoyée -->
+                          <button v-if="invoice.status === 'issued'" 
+                                  @click="markAsPaid(invoice)" 
+                                  class="ml-4 text-green-400 hover:text-green-300">
+                              Marquer comme payée
+                          </button>
+                      </td>
+                      
                       </tr>
                     </tbody>
                   </table>
@@ -94,34 +121,25 @@
                     <p v-if="errors.subject" class="mt-2 text-sm text-red-600">{{ errors.subject.join(' ') }}</p>
                   </div>
                   <div>
-                    <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Sujet</label>
+                    <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Description</label>
                     <textarea 
                       v-model="updateInvoiceForm.description" 
                       id="description" 
-                      rows="4" 
+                      rows="5" 
                       class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6">
                     </textarea>
                     <p v-if="errors.description" class="mt-2 text-sm text-red-600">{{ errors.description.join(' ') }}</p>
                   </div>
                   
                   <div>
-                    <label for="billing_start_date" class="block text-sm font-medium leading-6 text-gray-900">Date de début</label>
+                    <label for="billing_start_date" class="block text-sm font-medium leading-6 text-gray-900">Date de début de facturation</label>
                     <input type="date" v-model="updateInvoiceForm.billing_start_date" id="billing_start_date" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6" />
                     <p v-if="errors.billing_start_date" class="mt-2 text-sm text-red-600">{{ errors.billing_start_date.join(' ') }}</p>
                   </div>
                   <div>
-                    <label for="billing_end_date" class="block text-sm font-medium leading-6 text-gray-900">Date de fin</label>
+                    <label for="billing_end_date" class="block text-sm font-medium leading-6 text-gray-900">Date de fin de facturation</label>
                     <input type="date" v-model="updateInvoiceForm.billing_end_date" id="billing_end_date" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6" />
                     <p v-if="errors.billing_end_date" class="mt-2 text-sm text-red-600">{{ errors.billing_end_date.join(' ') }}</p>
-                  </div>
-                  <div>
-                    <label for="status" class="block text-sm font-medium leading-6 text-gray-900">Statut</label>
-                    <select v-model="updateInvoiceForm.status" id="status" class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6">
-                      <option value="pending">En attente</option>
-                      <option value="issued">Émise</option>
-                      <option value="paid">Payée</option>
-                    </select>
-                    <p v-if="errors.status" class="mt-2 text-sm text-red-600">{{ errors.status.join(' ') }}</p>
                   </div>
                   <div class="flex justify-end mt-4">
                     <button type="button" @click="showUpdateInvoiceModal = false;" class="mr-4 px-4 py-2 bg-gray-500 text-white rounded-md">Annuler</button>
@@ -193,7 +211,7 @@
   
   const invoicesStore = useInvoicesStore()
   const { invoices, error, loading, loadingEmail } = storeToRefs(invoicesStore);
-  const { fetchInvoices, updateInvoice, deleteInvoice, getInvoicePdf, sendEmail } = invoicesStore;
+  const { fetchInvoices, updateInvoice, deleteInvoice, getInvoicePdf, sendEmail, invoicePaid } = invoicesStore;
   const toast = useToast();
   
   const showUpdateInvoiceModal = ref(false);
@@ -211,7 +229,6 @@
     subject: '',
     billing_start_date: '',
     billing_end_date: '',
-    status: '',
   });
 
   const invoiceToDelete = ref(null);
@@ -316,6 +333,15 @@
       .catch(() => {
         toast.error("Erreur lors de la suppression de la facture.");
       });
+  }
+
+  async function markAsPaid(invoice) {
+    try {
+      await invoicePaid(invoice);
+      toast.success("Facture marquée comme payée avec succès !")      
+    } catch (err) {
+      toast.error(err.message);
+    }
   }
   
 </script>

@@ -15,7 +15,7 @@ Route::controller(RegisterController::class)->group(function(){
 });
 
 Route::middleware('auth:sanctum')->group( function () {
-    Route::get('/dashboard-data', [DashboardController::class, 'getDashboardData']);
+    Route::get('/dashboard', [DashboardController::class, 'getDashboardData']);
 
     Route::apiResource('tutors', TutorController::class);
     Route::apiResource('renters', RenterController::class);
@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::apiResource('invoices', InvoiceController::class);
     Route::get('invoices/{id}/pdf', [InvoiceController::class, 'displayPdf'])->name('invoices.displayPdf');
     Route::post('/invoices/{id}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.sendEmail');
+    Route::patch('invoices/{id}/paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
 
     Route::get('/validate-token', function () {
         return response()->json(['valid' => true]);

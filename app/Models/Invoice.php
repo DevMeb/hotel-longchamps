@@ -66,14 +66,7 @@ class Invoice extends Model
         $endDate = Carbon::parse($this->billing_end_date)->format('d/m/Y');
 
         return sprintf(
-            '%s,
-            Objet: %s,
-            Je soussigné Mr MEBARKI Hachemi gérant du logement situé au 87 Avenue Maréchal Foch 77500 Chelles,
-            réserve la chambre %s à %s %s, pour la période du %s au %s pour la somme de %s €.
-            A Chelles le %s.',
-            $this->reservation->renter->last_name, // Nom du locataire
-            $this->subject, // Sujet de la facture
-            $this->reservation->room->name, // Nom de la chambre
+            "Je soussigné Mr MEBARKI Hachemi, \n gérant du logement situé au 87 Avenue Maréchal Foch 77500 Chelles,\n réserve une chambre pour %s %s,\n pour la période du %s au %s,\n pour la somme de %s €.",
             $this->reservation->renter->first_name, // Prénom du locataire
             $this->reservation->renter->last_name, // Nom du locataire
             $startDate, // Date de début de la période de facturation
@@ -81,6 +74,7 @@ class Invoice extends Model
             $roomResource['rent'], // Montant de la chambre en euros
             $this->created_at->format('d/m/Y') // Date de création de la facture
         );
+        
     }
 
     public function getStatusTextAttribute(): string

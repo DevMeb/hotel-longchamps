@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-Bhm7SWZp.css",
+    "file": "assets/app-DXzLEV06.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -9,12 +9,12 @@
     "src": "resources/images/hotel-logo.png"
   },
   "resources/js/app.js": {
-    "file": "assets/app-CNwUjrMR.js",
+    "file": "assets/app-DZ3ZVWfO.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-C2Rkk2Fc.css"
+      "assets/app-CcwQW3P-.css"
     ],
     "assets": [
       "assets/hotel-logo-CYW32a5S.png"

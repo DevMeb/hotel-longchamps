@@ -60,6 +60,19 @@ export const useInvoicesStore = defineStore('invoices', () => {
     }
   }
 
+  async function invoicePaid(invoice) {
+    try {
+      const response = await axios.patch(`api/invoices/${invoice.id}/paid`);
+      const index = invoices.value.findIndex(i => i.id === invoice.id);
+      if (index !== -1) {
+        invoices.value[index] = response.data.data; // Mettre à jour la facture localement
+      }
+      return response.data.data;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async function getInvoicePdf(invoiceId) {
     try {
       const response = await axios.get(`api/invoices/${invoiceId}/pdf`, {
@@ -88,5 +101,5 @@ export const useInvoicesStore = defineStore('invoices', () => {
     }
   }
 
-  return { invoices, error, loading, loadingEmail, fetchInvoices, addInvoice, updateInvoice, deleteInvoice, getInvoicePdf, sendEmail };
+  return { invoices, error, loading, loadingEmail, fetchInvoices, addInvoice, updateInvoice, deleteInvoice, getInvoicePdf, sendEmail, invoicePaid };
 });
