@@ -30,10 +30,12 @@
 
     <!-- Détails des réservations et factures -->
     <div class="grid grid-cols-1 gap-6">
-      <div 
-        v-for="reservation in dashboard.reservations" 
-        :key="reservation.id" 
-        class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700"
+      <div
+        v-for="reservation in dashboard.reservations"
+        :key="reservation.id"
+        @click="goToReservation(reservation.id)"
+        class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 transition-all duration-200
+              hover:bg-gray-700 hover:shadow-md cursor-pointer"
       >
         <div class="flex justify-between items-center">
           <h2 class="text-xl font-semibold text-indigo-400 flex items-center">
@@ -45,54 +47,84 @@
         </div>
 
         <div class="mt-2 space-y-2">
-          <p class="text-gray-300 flex items-center"><span class="mr-2">👤</span>Locataire : <span class="font-semibold text-white ml-1">{{ reservation.renter.first_name }} {{ reservation.renter.last_name }}</span></p>
-          <p class="text-gray-300 flex items-center"><span class="mr-2">📅</span>Période : <span class="ml-1">{{ formatDate(reservation.start_date) }} - {{ reservation.end_date ? formatDate(reservation.end_date) : 'En cours' }}</span></p>
-          <p class="text-gray-300 flex items-center"><span class="mr-2">💰</span>Montant prévisionnel : <span class="ml-1 text-yellow-400 font-semibold">{{ (reservation.expected_amount / 100).toFixed(2) }} €</span></p>
-          <p class="text-gray-300 flex items-center"><span class="mr-2">💵</span>Montant facturé : <span class="ml-1 text-green-400 font-semibold">{{ (reservation.actual_amount / 100).toFixed(2) }} €</span></p>
-          <p class="text-gray-300 flex items-center"><span class="mr-2">⚖️</span>Différence : <span class="ml-1 text-red-400 font-semibold">{{ (reservation.difference / 100).toFixed(2) }} €</span></p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">👤</span>Locataire :
+            <span class="font-semibold text-white ml-1">
+              {{ reservation.renter.first_name }} {{ reservation.renter.last_name }}
+            </span>
+          </p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">📅</span>Période :
+            <span class="ml-1">
+              {{ formatDate(reservation.start_date) }} -
+              {{ reservation.end_date ? formatDate(reservation.end_date) : 'En cours' }}
+            </span>
+          </p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">💰</span>Montant prévisionnel :
+            <span class="ml-1 text-yellow-400 font-semibold">
+              {{ (reservation.expected_amount / 100).toFixed(2) }} €
+            </span>
+          </p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">💵</span>Montant facturé :
+            <span class="ml-1 text-green-400 font-semibold">
+              {{ (reservation.actual_amount / 100).toFixed(2) }} €
+            </span>
+          </p>
+          <p class="text-gray-300 flex items-center">
+            <span class="mr-2">⚖️</span>Différence :
+            <span class="ml-1 text-red-400 font-semibold">
+              {{ (reservation.difference / 100).toFixed(2) }} €
+            </span>
+          </p>
         </div>
 
         <!-- Section des factures -->
         <div v-if="Object.keys(reservation.invoices).length > 0" class="mt-4">
-          <button 
-            @click="toggleInvoices(reservation.id)" 
-            class="w-full flex items-center justify-between bg-gray-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-gray-600 transition-all">
+          <button
+            @click.stop="toggleInvoices(reservation.id)"
+            class="w-full flex items-center justify-between bg-gray-700 text-white px-4 py-2 rounded-md shadow-md hover:bg-gray-600 transition-all"
+          >
             <span class="text-lg">📜 Factures</span>
-            <span :class="{'rotate-180': expandedReservation === reservation.id}" class="transition-transform">🔽</span>
+            <span :class="{ 'rotate-180': expandedReservation === reservation.id }" class="transition-transform">🔽</span>
           </button>
 
-          <div 
-            v-if="expandedReservation === reservation.id" 
+          <div
+            v-if="expandedReservation === reservation.id"
             class="mt-3 bg-gray-900 p-4 rounded-lg border border-gray-700"
           >
-            <div 
-              v-for="(invoices, status) in reservation.invoices" 
-              :key="status" 
-              class="mt-2"
-            >
+            <div v-for="(invoices, status) in reservation.invoices" :key="status" class="mt-2">
               <h4 class="text-md font-semibold text-gray-200 flex items-center">
-                <span class="bg-gray-500 text-white px-2 py-1 rounded-md text-xs">{{ statusText(status) }}</span>
+                <span class="bg-gray-500 text-white px-2 py-1 rounded-md text-xs">
+                  {{ statusText(status) }}
+                </span>
               </h4>
               <ul class="mt-1 space-y-2">
-                <li 
-                  v-for="invoice in invoices" 
-                  :key="invoice.id" 
-                  class="flex justify-between items-center bg-gray-800 p-3 rounded-md"
+                <li
+                  v-for="invoice in invoices"
+                  :key="invoice.id"
+                  @click.stop="goToInvoice(invoice.id)"
+                  class="flex justify-between items-center bg-gray-800 p-3 rounded-md cursor-pointer transition-all duration-200
+                        hover:bg-gray-700 hover:shadow-md"
                 >
-                  <span class="text-gray-300">
-                    - {{ invoice.subject || `Facture #${invoice.id}` }}
+                  <div class="flex items-center space-x-2">
+                    <span class="text-gray-400 group-hover:text-indigo-400 transition-all duration-200">📝</span>
+                    <span class="text-gray-300 group-hover:text-indigo-300 transition-all duration-200">
+                      - {{ invoice.subject || `Facture #${invoice.id}` }}
+                    </span>
+                  </div>
+                  <span class="text-indigo-300 font-semibold group-hover:text-indigo-500 transition-all duration-200">
+                    {{ (invoice.amount / 100).toFixed(2) }} €
                   </span>
-                  <span class="text-indigo-300 font-semibold">{{ (invoice.amount / 100).toFixed(2) }} €</span>
                 </li>
               </ul>
             </div>
           </div>
         </div>
-
         <div v-else class="mt-4 text-red-400 text-center">🚫 Aucune facture générée</div>
       </div>
     </div>
-
   </div>
 </template>
 
