@@ -9,12 +9,15 @@ use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\ReservationController;
 use App\Http\Controllers\API\DashboardController;
 
-Route::controller(RegisterController::class)->group(function(){
-    Route::post('register', 'register')->name('register');
+Route::controller(RegisterController::class)->group( function () {
     Route::post('login', 'login')->name('login');
 });
 
 Route::middleware('auth:sanctum')->group( function () {
+    Route::get('/validate-token', function () {
+        return response()->json(['valid' => true]);
+    });
+
     Route::get('/dashboard', [DashboardController::class, 'getDashboardData']);
 
     Route::apiResource('tutors', TutorController::class);
@@ -26,8 +29,4 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('invoices/{id}/pdf', [InvoiceController::class, 'displayPdf'])->name('invoices.displayPdf');
     Route::post('/invoices/{id}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.sendEmail');
     Route::patch('invoices/{id}/paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
-
-    Route::get('/validate-token', function () {
-        return response()->json(['valid' => true]);
-    });
 });

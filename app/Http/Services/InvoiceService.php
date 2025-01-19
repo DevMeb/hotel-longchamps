@@ -62,6 +62,9 @@ class InvoiceService
     public function updateInvoice(Invoice $invoice, array $data): Invoice
     {
         $invoice->update($data);
+
+        $this->downloadPdf($invoice);
+
         return $invoice;
     }
 
@@ -108,7 +111,10 @@ class InvoiceService
         $pdfName = str_replace([' ', '/', '\\'], '_', "{$roomerName}_{$roomName}_{$subject}_{$idInvoice}.pdf");
         $path = 'invoices/' . $pdfName;
 
-        $pdf = Pdf::loadView('invoices/pdf', ["invoice" => $invoice]);
+        $pdf = Pdf::loadView('invoices/pdf', [
+            "invoice" => $invoice,
+            "tamponPath" => storage_path('app/tampon_hotel.jpg')
+        ]);
 
         Storage::put($path, $pdf->output());
 
