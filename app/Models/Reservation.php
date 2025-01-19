@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Reservation extends Model
 {
@@ -16,6 +17,20 @@ class Reservation extends Model
         'start_date',
         'end_date',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($reservation) {
+            // Supprimer les fichiers PDF des factures associées
+            foreach ($reservation->invoices as $invoice) {
+                if ($invoice->pdf_path && Storage::exists($invoice->pdf_path)) {
+                    Storage::delete($invoice->pdf_path);
+                }
+            }
+        });
+    }
 
     // Define relationships
     public function renter()
