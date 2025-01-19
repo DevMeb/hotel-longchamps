@@ -21,19 +21,6 @@ class RegisterController extends BaseController
     }
 
     /**
-     * Inscrire un nouvel utilisateur
-     */
-    public function register(RegisterRequest $request): JsonResponse
-    {
-        try {
-            $user = $this->registerService->createUser($request->all());
-            return $this->sendResponse($this->registerService->prepareUserData($user), 'Utilisateur enregistré avec succès.', JsonResponse::HTTP_CREATED);
-        } catch (\Exception $e) {
-            return $this->sendError('Une erreur est survenue lors de l\'enregistrement de l\'utilisateur.', [$e->getMessage()], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
      * Connexion d'un utilisateur existant
      */
     public function login(Request $request): JsonResponse

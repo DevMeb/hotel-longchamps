@@ -11,27 +11,37 @@
             padding: 0;
             font-size: 14px;
             color: #333;
+            position: relative;
+            height: 100vh;
         }
+
         .container {
             padding: 20px;
             margin: 0 auto;
             width: 700px;
+            position: relative;
+            min-height: 100vh;
         }
+
         .header {
             text-align: left;
         }
+
         .header h1 {
             font-size: 20px;
             margin-bottom: 5px;
         }
+
         .header .address {
             font-size: 14px;
             line-height: 1.6;
         }
+
         .divider {
             border-top: 1px solid #000;
             margin: 20px 0;
         }
+
         .section-title {
             font-weight: bold;
             font-size: 16px;
@@ -39,19 +49,34 @@
             margin-bottom: 20px;
             text-transform: uppercase;
         }
+
         .content {
             margin-bottom: 30px;
         }
+
         .content p {
             margin: 5px 0;
             line-height: 1.6;
         }
-        .highlight {
-            font-weight: bold;
-        }
+
         .footer {
             text-align: left;
             margin-top: 30px;
+        }
+
+        /* ✅ Tampon centré en bas de la page */
+        .stamp-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: 100%;
+        }
+
+        .stamp-container img {
+            width: 200px;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -77,9 +102,7 @@
         <div class="content">
             <p><strong>Locataire :</strong> {{ $invoice->reservation->renter->first_name . ' ' . $invoice->reservation->renter->last_name }}</p>
             <p><strong>Objet :</strong> {{ $invoice->subject }}</p>
-            <p>
-                {{ $invoice->description }}
-            </p>
+            <p>{{ $invoice->description }}</p>
             <p><strong>Chelles le :</strong> {{ \Carbon\Carbon::now()->format('d/m/Y') }}</p>
         </div>
 
@@ -88,6 +111,11 @@
             <p><strong>Paiement des réceptions</strong></p>
             <p>RIB en PJ</p>
             <p><strong>MR MEBARKI Hachemi</strong></p>
+        </div>
+
+        <!-- ✅ Tampon CENTRÉ en BAS de la page -->
+        <div class="stamp-container">
+            <img src="{{ $tamponPath }}" alt="Tampon">
         </div>
     </div>
 </body>

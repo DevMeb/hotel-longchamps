@@ -60,6 +60,11 @@ class Invoice extends Model
     // Méthode pour générer dynamiquement la désignation
     public function getDescriptionAttribute()
     {
+
+        if (!empty($this->attributes['description'])) {
+            return $this->attributes['description']; // Récupère la description stockée en base
+        }
+        
         $roomResource = (new RoomResource($this->reservation->room))->toArray(null);
 
         $startDate = Carbon::parse($this->billing_start_date)->format('d/m/Y');

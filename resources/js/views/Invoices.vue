@@ -192,6 +192,16 @@
               </div>
             </div>
 
+            <!-- Modale pour afficher le PDF -->
+            <div v-if="showPdfModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div class="bg-white p-6 rounded-lg shadow-lg w-4/5 h-4/5 relative">
+                <button @click="showPdfModal = false" class="absolute top-3 right-3 text-gray-600 hover:text-gray-800">
+                  ✖
+                </button>
+                <iframe :src="pdfUrl" class="w-full h-full"></iframe>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -217,6 +227,8 @@
   const showUpdateInvoiceModal = ref(false);
   const showDeleteInvoiceModal = ref(false);
   const showSendInvoiceModal = ref(false);
+  const showPdfModal = ref(false);
+  const pdfUrl = ref("");
 
   // Emails à envoyer
   const emailAddresses = ref('');
@@ -276,9 +288,8 @@
 
   async function displayInvoicePdf(invoiceId) {
     try {
-      const pdfUrl = await getInvoicePdf(invoiceId);
-      
-      window.open(pdfUrl, '_blank');
+      pdfUrl.value = await getInvoicePdf(invoiceId);
+      showPdfModal.value = true; // Ouvre la modale
       
     } catch (err) {
       toast.error("Une erreur est survenue lors de l'affichage de la facture");
