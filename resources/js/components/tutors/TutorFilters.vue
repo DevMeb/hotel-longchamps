@@ -1,36 +1,31 @@
 <template>
-    <div class="mt-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 animate-fade-in">
-      <!-- 🏷️ Label -->
-      <label class="text-sm text-gray-300 flex items-center">
-        🎯 Filtrer par :
-      </label>
-  
-      <!-- 📂 Sélecteur -->
-      <div class="relative w-full sm:w-auto">
-        <select 
-          v-model="localFilter" 
-          @change="updateFilters" 
-          class="w-full sm:w-auto p-2 border rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
-        >
-          <option value="id">Identifiant</option>
-          <option value="last_name">Nom</option>
-          <option value="first_name">Prénom</option>
-          <option value="email">Email</option>
-        </select>
-      </div>
-  
-      <!-- 🔍 Champ de recherche -->
-      <div class="relative w-full sm:w-64">
-        <span class="absolute inset-y-0 left-2 flex items-center text-gray-400">🔍</span>
-        <input
-          v-model="localQuery"
-          @input="updateFilters"
-          type="text"
-          placeholder="Rechercher un tuteur..."
-          class="w-full p-2 pl-8 border rounded-md bg-gray-800 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-        />
-      </div>
+  <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700 mt-4">
+    <!-- 🔍 Label Filtrage -->
+    <div class="flex items-center space-x-2">
+      <span class="text-gray-300 text-sm font-semibold">Filtrer par :</span>
+      <!-- 🎛 Sélection du filtre -->
+      <select v-model="localFilter" @change="updateFilters" class="filter-dropdown">
+        <option value="id">Identifiant</option>
+        <option value="last_name">Nom</option>
+        <option value="first_name">Prénom</option>
+        <option value="email">Email</option>
+      </select>
     </div>
+
+    <!-- 🎚️ Recherche dynamique selon le filtre sélectionné -->
+    <div v-if="localFilter !== 'tutor'" class="relative w-full sm:w-64">
+      <input 
+        v-model="localQuery" 
+        @input="updateFilters" 
+        type="text" 
+        class="filter-input" 
+        placeholder="Rechercher..."
+      />
+      <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+        🔍
+      </span>
+    </div>
+  </div>
   </template>
   
   <script setup>
@@ -63,20 +58,20 @@
   </script>
   
   <style scoped>
-  /* 🔥 Animation d'apparition fluide */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-5px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  /* Style du dropdown */
+  .filter-dropdown {
+    @apply px-3 py-2 border rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none;
   }
   
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
+  /* Style du champ de recherche */
+  .filter-input {
+    @apply px-3 py-2 border rounded-md bg-gray-900 text-white w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none;
+  }
+  
+  /* Ajout d'un léger effet au survol */
+  .filter-dropdown:hover,
+  .filter-input:hover {
+    @apply border-indigo-400;
   }
   </style>
   
