@@ -84,12 +84,14 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>LE LONGCHAMP SNC KENNEDY</h1>
+            <h1>LE LONGCHAMP</h1>
+            <h2>SNC KENNEDY</h2>
             <p class="address">
-                MR MEBARKI Hachemi<br>
+                MR MEBARKI Gérant<br>
                 87 Avenue Marechal Foch<br>
                 77500 CHELLES<br>
-                Tél : 07.61.13.83.10
+                Tél: 07.61.13.83.10<br>
+                Email: contact@hotel-longchamps.fr
             </p>
         </div>
 
@@ -98,11 +100,20 @@
         <!-- Title -->
         <div class="section-title">Facture Réservation Hôtel</div>
 
+        <div class="divider"></div>
+
+        <p style="text-align: center">
+            <strong>
+                {{ $invoice->subject }} 
+                du {{ \Carbon\Carbon::parse($invoice->billing_start_date)->format('d/m/Y') }} 
+                au {{ \Carbon\Carbon::parse($invoice->billing_end_date)->format('d/m/Y') }}
+            </strong>
+        </p>
+
         <!-- Content -->
         <div class="content">
-            <p><strong>Locataire :</strong> {{ $invoice->reservation->renter->first_name . ' ' . $invoice->reservation->renter->last_name }}</p>
-            <p><strong>Objet :</strong> {{ $invoice->subject }}</p>
-            <p>{{ $invoice->description }}</p>
+            <p><strong>Locataire : {{ $invoice->reservation->renter->first_name . ' ' . $invoice->reservation->renter->last_name }}</strong></p>
+            <p style="padding-left: 15px">{{ $invoice->description }}</p>
             <p><strong>Chelles le :</strong> {{ \Carbon\Carbon::now()->format('d/m/Y') }}</p>
         </div>
 
@@ -110,7 +121,7 @@
         <div class="footer">
             <p><strong>Paiement des réceptions</strong></p>
             <p>RIB en PJ</p>
-            <p><strong>MR MEBARKI Hachemi</strong></p>
+            <p><strong>MR MEBARKI Gérant</strong></p>
         </div>
 
         <!-- ✅ Tampon CENTRÉ en BAS de la page -->

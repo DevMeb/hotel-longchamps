@@ -9,17 +9,14 @@ export const useTutorsStore = defineStore('tutors', () => {
 
   async function fetchTutors() {
     loading.value = true;
+    error.value = null;
+    tutors.value = [];
+
     try {
-      const response = await axios.get('api/tutors');
+      const response = await axios.get('/api/tutors');
       tutors.value = response.data.data;
-
-      //For GET method Laravel return code 200 with HTML instead 405.
-      if (response.headers['content-type'] !== 'application/json') {
-        throw new Error("Une erreur est survenue depuis le serveur lors de la récupération des tuteurs. Veuillez contactez votre administrateur.");
-      }
-
     } catch (err) {
-      error.value = err.message
+      error.value = err.response?.data?.message || `Erreur ${err.response?.status}: ${err.response?.statusText}`;
     } finally {
       loading.value = false;
     }
@@ -27,7 +24,9 @@ export const useTutorsStore = defineStore('tutors', () => {
 
   async function addTutor(tutor) {
     try {
-      return await axios.post('api/tutors', tutor);
+      const response = await axios.post('/api/tutors', tutor);
+      tutors.value.push(response.data.data); // ✅ Ajout local
+      return response;
     } catch (err) {
       throw err;
     }
@@ -35,7 +34,12 @@ export const useTutorsStore = defineStore('tutors', () => {
 
   async function updateTutor(tutor) {
     try {
-      return await axios.put(`api/tutors/${tutor.id}`, tutor);
+      const response = await axios.put(`/api/tutors/${tutor.id}`, tutor);
+      const index = tutors.value.findIndex(t => t.id === tutor.id);
+      if (index !== -1) {
+        tutors.value[index] = response.data.data; // ✅ Mise à jour locale
+      }
+      return response;
     } catch (err) {
       throw err;
     }
@@ -43,7 +47,8 @@ export const useTutorsStore = defineStore('tutors', () => {
 
   async function deleteTutor(tutorId) {
     try {
-      return await axios.delete(`api/tutors/${tutorId}`);
+      await axios.delete(`/api/tutors/${tutorId}`);
+      tutors.value = tutors.value.filter(t => t.id !== tutorId); // ✅ Suppression locale
     } catch (err) {
       throw err;
     }

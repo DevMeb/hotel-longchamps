@@ -30,3 +30,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('/invoices/{id}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.sendEmail');
     Route::patch('invoices/{id}/paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
 });
+
+Route::fallback(function () {
+    return response()->json([
+        'message' => 'Route API non trouvée.',
+        'status' => 404
+    ], 404);
+});
