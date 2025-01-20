@@ -1,14 +1,14 @@
 <template>
-    <div v-if="show" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md">
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md">
       <!-- Overlay pour fermer la modale -->
       <div @click.self="closeModal" class="fixed inset-0"></div>
   
-      <div class="bg-white p-6 rounded-xl shadow-xl w-[90%] sm:w-96 transform transition-all animate-fade-in">
+      <div class="bg-white p-6 rounded-xl shadow-xl w-[90%] sm:w-[70%] transform transition-all animate-fade-in">
         <!-- ✨ Titre -->
         <div class="flex items-center justify-between border-b pb-2">
           <h2 class="text-xl font-semibold text-gray-800 flex items-center">
-            🧾 Ajouter une facture
-          </h2>
+            {{ invoice.reservation_id ? "🧾 Ajouter une facture" : "✏️ Éditer une facture" }}
+          </h2>          
           <button @click="closeModal" class="text-gray-500 hover:text-gray-700 transition">✖️</button>
         </div>
   
@@ -16,28 +16,38 @@
         <form @submit.prevent="submitForm" class="mt-4 space-y-4">
           <!-- Informations de la réservation (non modifiables) -->
           <div class="bg-gray-100 p-3 rounded-lg">
-            <p class="text-sm text-gray-700"><strong>Réservation #:</strong> {{ invoiceData.reservation_id }}</p>
-            <p class="text-sm text-gray-700"><strong>Locataire:</strong> {{ invoiceData.renter_name }}</p>
-            <p class="text-sm text-gray-700"><strong>Chambre:</strong> {{ invoiceData.room_name }}</p>
+            <p class="text-sm text-gray-700"><strong>Réservation #:</strong> {{ invoice.reservation.id }}</p>
+            <p class="text-sm text-gray-700">
+              <strong>Locataire:</strong> 
+              {{ invoice.reservation.renter.last_name.toUpperCase() }} 
+              {{ invoice.reservation.renter.first_name }}
+            </p>
+            <p class="text-sm text-gray-700"><strong>Chambre:</strong> {{ invoice.reservation.room.name }}</p>
           </div>
   
           <!-- Sujet de la facture -->
           <div>
             <label for="subject" class="block text-sm font-medium text-gray-700">Sujet</label>
-            <input type="text" v-model="invoiceData.subject" class="input-field" placeholder="Ex: Loyer janvier 2024">
+            <input type="text" v-model="invoice.subject" class="input-field" placeholder="Ex: Loyer janvier 2024">
             <p v-if="errors.subject" class="error-message">{{ errors.subject?.join(' ') }}</p>
+          </div>
+
+          <div v-if="invoice.reservation.id">
+            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea rows="5" v-model="invoice.description" class="input-field" />
+            <p v-if="errors.description" class="error-message">{{ errors.subject?.join(' ') }}</p>
           </div>
   
           <!-- Dates de facturation -->
           <div>
             <label for="billing_start_date" class="block text-sm font-medium text-gray-700">Début de facturation</label>
-            <input type="date" v-model="invoiceData.billing_start_date" class="input-field">
+            <input type="date" v-model="formattedBillingStartDate" class="input-field">
             <p v-if="errors.billing_start_date" class="error-message">{{ errors.billing_start_date?.join(' ') }}</p>
           </div>
   
           <div>
             <label for="billing_end_date" class="block text-sm font-medium text-gray-700">Fin de facturation</label>
-            <input type="date" v-model="invoiceData.billing_end_date" class="input-field">
+            <input type="date" v-model="formattedBillingEndDate" class="input-field">
             <p v-if="errors.billing_end_date" class="error-message">{{ errors.billing_end_date?.join(' ') }}</p>
           </div>
   
@@ -55,64 +65,49 @@
   </template>
   
   <script setup>
-  import { ref, watch, defineProps, defineEmits } from "vue";
+  import { ref, computed } from "vue";
   import { useToast } from "vue-toastification";
   import { useInvoicesStore } from '@/stores/invoices';
-  
+  import { formatDateToISO } from '@/utils'
+
   const invoicesStore = useInvoicesStore()
-  const { addInvoice } = invoicesStore
+  const { addInvoice, updateInvoice } = invoicesStore
 
   const props = defineProps({
-    show: Boolean,
     invoice: Object,
-  });
+  })
   
-  const emit = defineEmits(["close"]);
-  const toast = useToast();
+  const emit = defineEmits(["close"])
+  const toast = useToast()
   
-  const invoiceData = ref({
-    reservation_id: null,
-    renter_name: '',
-    room_name: '',
-    subject: '',
-    billing_start_date: '',
-    billing_end_date: '',
-  });
-  
-  const errors = ref({});
-  const isSubmitting = ref(false);
-  
-  // 🎯 Synchroniser les données de l'invoice reçue
-  watch(() => props.invoice, (newInvoice) => {
-    if (newInvoice) {
-        invoiceData.value = {
-        reservation_id: newInvoice.reservation_id,
-        renter_name: newInvoice.renter_name,
-        room_name: newInvoice.room_name,
-        subject: newInvoice.subject || '',
-        billing_start_date: newInvoice.billing_start_date || '',
-        billing_end_date: newInvoice.billing_end_date || '',
-        status: newInvoice.status,
-        };
-    }
-  }, { immediate: true }); // 🔥 Ajout de `deep: true`
+  const errors = ref({})
+  const isSubmitting = ref(false)
 
+  const formattedBillingStartDate = computed(() => formatDateToISO(props.invoice.billing_start_date))
+  const formattedBillingEndDate = computed(() => formatDateToISO(props.invoice.billing_end_date))
   
   // 📌 Envoi du formulaire
   const submitForm = async () => {
     try {
       isSubmitting.value = true;
-      let response;
-        if (invoiceData.value.id) {
-        // 🔄 Mise à jour de la facture existante
-        response = await updateInvoice(invoiceData.value);
+
+      // 🔄 Créer une copie de l'invoice et convertir les dates au format Y-m-d
+      const formattedInvoice = {
+        ...props.invoice,
+        reservation_id: props.invoice.reservation ? props.invoice.reservation.id : null,
+        billing_start_date: formatDateToISO(props.invoice.billing_start_date),
+        billing_end_date: formatDateToISO(props.invoice.billing_end_date),
+      };
+
+      if (formattedInvoice.reservation_id) {
+        await updateInvoice(formattedInvoice);
         toast.success("Facture mise à jour avec succès !");
-        } else {
-        // ➕ Ajout d'une nouvelle facture
-        response = await addInvoice(invoiceData.value);
+      } else {
+        await addInvoice(formattedInvoice);
         toast.success("Facture ajoutée avec succès !");
-        }
-        closeModal();
+      }
+      
+      closeModal();
     } catch (err) {
       if (err.response?.data?.errors) {
         errors.value = err.response.data.errors;
@@ -124,14 +119,30 @@
       isSubmitting.value = false;
     }
   };
+
   
   // 📌 Fermeture de la modale
   const closeModal = () => {
     emit("close");
   };
-  </script>
+</script>
   
-  <style scoped>
+<style scoped>
+  /* Animation d'apparition de la modale */
+  @keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+    }
+
+    .animate-fade-in {
+    animation: fadeIn 0.2s ease-out forwards;
+    }
   .input-field {
     @apply block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2;
   }
@@ -144,5 +155,5 @@
   .btn-secondary {
     @apply px-4 py-2 bg-gray-500 text-white rounded-md font-semibold hover:bg-gray-400 transition;
   }
-  </style>
+</style>
   
