@@ -15,11 +15,6 @@ export const useReservationsStore = defineStore('reservations', () => {
 
       const response = await axios.get('api/reservations', { params });
       reservations.value = response.data.data;
-
-      // Vérifier si le contenu est du JSON
-      if (response.headers['content-type'] !== 'application/json') {
-        throw new Error("Une erreur est survenue lors de la récupération des réservations.");
-      }
     } catch (err) {
       error.value = err.message;
     } finally {
