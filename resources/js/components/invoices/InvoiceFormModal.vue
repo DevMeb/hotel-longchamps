@@ -7,7 +7,7 @@
         <!-- ✨ Titre -->
         <div class="flex items-center justify-between border-b pb-2">
           <h2 class="text-xl font-semibold text-gray-800 flex items-center">
-            {{ invoice.reservation_id ? "🧾 Ajouter une facture" : "✏️ Éditer une facture" }}
+            {{ invoice.id ? "✏️ Éditer une facture" : "🧾 Ajouter une facture" }}
           </h2>          
           <button @click="closeModal" class="text-gray-500 hover:text-gray-700 transition">✖️</button>
         </div>
@@ -54,9 +54,9 @@
           <!-- ⚡️ Boutons d'action -->
           <div class="flex justify-end space-x-3 mt-4">
             <button type="button" @click="closeModal" class="btn-secondary">Annuler</button>
-            <button type="submit" class="btn-primary flex items-center" :disabled="isSubmitting">
-              <span v-if="isSubmitting" class="animate-spin mr-2">⏳</span>
-              Ajouter
+            <button type="submit" class="btn-primary flex items-center" :disabled="invoice.id ? loading.update : loading.add">
+              <span v-if="invoice.id ? loading.update : loading.add" class="animate-spin mr-2">⏳</span>
+              {{ invoice.id ? "Editer" : "Ajouter" }}
             </button>
           </div>
         </form>
@@ -69,9 +69,11 @@
   import { useToast } from "vue-toastification";
   import { useInvoicesStore } from '@/stores/invoices';
   import { formatDateToISO } from '@/utils'
+  import { storeToRefs } from "pinia";
 
   const invoicesStore = useInvoicesStore()
   const { addInvoice, updateInvoice } = invoicesStore
+  const { loading } = storeToRefs(invoicesStore);
 
   const props = defineProps({
     invoice: Object,
@@ -81,7 +83,6 @@
   const toast = useToast()
   
   const errors = ref({})
-  const isSubmitting = ref(false)
 
   const formattedBillingStartDate = computed(() => formatDateToISO(props.invoice.billing_start_date))
   const formattedBillingEndDate = computed(() => formatDateToISO(props.invoice.billing_end_date))
@@ -89,8 +90,6 @@
   // 📌 Envoi du formulaire
   const submitForm = async () => {
     try {
-      isSubmitting.value = true;
-
       // 🔄 Créer une copie de l'invoice et convertir les dates au format Y-m-d
       const formattedInvoice = {
         ...props.invoice,
@@ -115,12 +114,9 @@
       } else {
         toast.error(err);
       }
-    } finally {
-      isSubmitting.value = false;
     }
   };
 
-  
   // 📌 Fermeture de la modale
   const closeModal = () => {
     emit("close");

@@ -78,11 +78,10 @@ async function confirmDelete() {
         opacity: 1;
         transform: scale(1);
     }
-    }
-
-    .animate-fade-in {
+  }
+  .animate-fade-in {
     animation: fadeIn 0.2s ease-out forwards;
-    }
+  }
   .input-field {
     @apply block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2;
   }

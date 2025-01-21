@@ -19,3 +19,9 @@ export function formatDateToFR(dateString) {
 
   return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
 }
+
+// 📌 Validation des emails
+export function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}

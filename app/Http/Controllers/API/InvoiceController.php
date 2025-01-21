@@ -148,7 +148,7 @@ class InvoiceController extends BaseController
             $invoice = $this->invoiceService->findInvoiceById($id);
 
             // Récupérer et valider les emails
-            $emails = explode(',', $request->input('emails', ''));
+            $emails = explode(';', $request->input('emails'));
 
             // Utiliser le service pour envoyer l'email
             $this->invoiceService->sendInvoiceByEmail($invoice, $emails);
