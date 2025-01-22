@@ -112,9 +112,9 @@ export const useTutorsStore = defineStore('tutors', () => {
     return apiCall({
       operation: 'delete',
       request: () => axios.delete(`/api/tutors/${tutorId}`),
-      onSuccess: () => {
+      onSuccess: (response) => {
         tutors.value = tutors.value.filter(t => t.id !== tutorId);
-        notify('success', "Le tuteur a été supprimé avec succès.");
+        notify('success', response.data.message);
       },
     });
   }

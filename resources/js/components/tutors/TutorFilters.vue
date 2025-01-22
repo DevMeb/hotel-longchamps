@@ -66,12 +66,3 @@ const resetFilters = () => {
   });
 };
 </script>
-
-<style scoped>
-.filter-input {
-  @apply p-2 border rounded-md bg-gray-900 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition w-full;
-}
-.btn-secondary {
-  @apply px-4 py-2 bg-gray-500 text-white rounded-md font-semibold hover:bg-gray-400 transition;
-}
-</style>

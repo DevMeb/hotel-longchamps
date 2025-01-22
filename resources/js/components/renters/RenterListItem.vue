@@ -18,14 +18,14 @@
       </div>
   
       <!-- ⏳ Dates clés -->
-      <div class="bg-gray-900 p-4 rounded-md grid grid-cols-2 gap-4">
+      <div class="bg-gray-900 p-4 rounded-lg flex flex-col space-y-2">
         <p class="text-gray-300 text-sm flex items-center">
           🕒 <span class="ml-2 font-semibold text-white">Créé le :</span>
-          <span class="ml-1">{{ renter.created_at }}</span>
+          <span class="ml-1 text-indigo-300">{{ renter.created_at }}</span>
         </p>
         <p class="text-gray-300 text-sm flex items-center">
           🔄 <span class="ml-2 font-semibold text-white">Mis à jour le :</span>
-          <span class="ml-1">{{ renter.updated_at }}</span>
+          <span class="ml-1 text-indigo-300">{{ renter.updated_at }}</span>
         </p>
       </div>
   

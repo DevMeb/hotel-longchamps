@@ -74,7 +74,7 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 const tutorsStore = useTutorsStore();
 const { addTutor, updateTutor, clearErrors } = tutorsStore
-const {  errors, loading } = storeToRefs(tutorsStore);
+const { errors, loading } = storeToRefs(tutorsStore);
 
 const tutorData = ref({
   id: null,
@@ -106,42 +106,3 @@ const closeModal = () => {
   emit("close");
 };
 </script>
-
-
-<style scoped>
-/* Animation d'apparition de la modale */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out forwards;
-}
-
-/* Styles des champs de saisie */
-.input-field {
-  @apply block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
-}
-
-/* Messages d'erreur */
-.error-message {
-  @apply mt-2 text-sm text-red-600;
-}
-
-/* Bouton principal */
-.btn-primary {
-  @apply px-4 py-2 bg-indigo-500 text-white rounded-md font-semibold hover:bg-indigo-400 transition disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-/* Bouton secondaire */
-.btn-secondary {
-  @apply px-4 py-2 bg-gray-500 text-white rounded-md font-semibold hover:bg-gray-400 transition;
-}
-</style>

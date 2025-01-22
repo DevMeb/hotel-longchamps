@@ -112,9 +112,9 @@ export const useRentersStore = defineStore('renters', () => {
     return apiCall({
       operation: 'delete',
       request: () => axios.delete(`/api/renters/${renterId}`),
-      onSuccess: () => {
+      onSuccess: (response) => {
         renters.value = renters.value.filter(r => r.id !== renterId);
-        notify('success', "Le locataire a été supprimé avec succès.");
+        notify('success', response.data.message);
       },
     });
   }
