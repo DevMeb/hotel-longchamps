@@ -44,10 +44,15 @@
   
   onMounted(async () => {
     try {
-      pdfUrl.value = await getInvoicePdf(props.invoice.id)
-    } catch(err) {
+      error.value = null;
+      pdfUrl.value = null;
+
+      pdfUrl.value = await getInvoicePdf(props.invoice.id);
+
+    } catch (err) {
       error.value = "Impossible de charger le PDF.";
     }
-  })
+  });
+
   </script>
   

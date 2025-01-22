@@ -2,20 +2,13 @@
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import axios from 'axios';
+import { notify } from '@/utils';
 import { useStorage } from '@vueuse/core';
 
 export const useInvoicesStore = defineStore('invoices', () => {
   const invoices = ref([]);
-  const error = ref(null);
-  const loading = ref({
-    fetch: false,
-    update: false,
-    add: false,
-    sendEmail: false,
-    delete: false,
-    pdf: false,
-    paid: false,
-  });
+  const errors = ref({}); 
+  const loading = ref({});
 
   // 📌 Persistance des filtres avec localStorage
   const activeFilters = useStorage('invoice-filters', {
@@ -24,115 +17,6 @@ export const useInvoicesStore = defineStore('invoices', () => {
     status: "",
     month_year: "",
   });
-
-  async function fetchInvoices(id = null) {
-    loading.value.fetch = true;
-    const params = id ? { id: id } : {};
-    try {
-      const response = await axios.get('api/invoices', { params });
-      invoices.value = response.data.data;
-
-      // Vérifier si le contenu est du JSON
-      if (response.headers['content-type'] !== 'application/json') {
-        throw new Error("Une erreur est survenue lors de la récupération des factures.");
-      }
-    } catch (err) {
-      error.value = err.message;
-    } finally {
-      loading.value.fetch = false;
-    }
-  }
-
-  async function addInvoice(invoice) {
-    try {
-      loading.value.add = true;
-      const response = await axios.post('api/invoices', invoice);
-      invoices.value.push(response.data.data); // Ajouter la nouvelle facture localement
-      return response;
-    } catch (err) {
-      throw err;
-    } finally {
-      loading.value.add = false;
-    }
-  }
-
-  async function updateInvoice(invoice) {
-    try {
-      loading.value.update = true;
-      const response = await axios.put(`api/invoices/${invoice.id}`, invoice);
-      const index = invoices.value.findIndex(i => i.id === invoice.id);
-      if (index !== -1) {
-        invoices.value[index] = response.data.data; // Mettre à jour la facture localement
-      }
-      return response;
-    } catch (err) {
-      throw err;
-    } finally {
-      loading.value.update = false
-    }
-  }
-
-  async function deleteInvoice(invoiceId) {
-    try {
-      loading.value.delete = true;
-      const response = await axios.delete(`api/invoices/${invoiceId}`);
-      invoices.value = invoices.value.filter(i => i.id !== invoiceId); // Supprimer localement
-      return response;
-    } catch (err) {
-      throw err;
-    } finally {
-      loading.value.delete = false;
-    }
-  }
-
-  async function invoicePaid(invoice) {
-    try {
-      loading.value.paid = true;
-      const response = await axios.patch(`api/invoices/${invoice.id}/paid`);
-      const index = invoices.value.findIndex(i => i.id === invoice.id);
-      if (index !== -1) {
-        invoices.value[index] = response.data.data; // Mettre à jour la facture localement
-      }
-      return response.data.data;
-    } catch (err) {
-      throw err;
-    } finally {
-      loading.value.paid = false;
-    }
-  }
-
-  async function getInvoicePdf(invoiceId) {
-    try {
-      loading.value.pdf = true;
-      const response = await axios.get(`api/invoices/${invoiceId}/pdf`, {
-        responseType: 'blob', // Important : indique qu'on attend un fichier binaire
-      });
-  
-      return URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-    } catch (err) {
-      throw err;
-    } finally {
-      loading.value.pdf = false;
-    }
-  }
-
-  async function sendEmail(invoiceId, emails) {
-    try {
-      loading.value.sendEmail = true
-      const response = await axios.post(`/api/invoices/${invoiceId}/send-email`, {
-        emails: emails,
-      });
-
-      const index = invoices.value.findIndex(i => i.id === invoiceId);
-      if (index !== -1) {
-        invoices.value[index] = response.data.data; // Mettre à jour la facture localement
-      }
-    } catch (err) {
-      throw err
-    } finally {
-      loading.value.sendEmail = false;
-    }
-  }
 
   function updateFilters(filters) {
     activeFilters.value = filters;
@@ -173,9 +57,144 @@ export const useInvoicesStore = defineStore('invoices', () => {
     });
   }, { deep: true, immediate: true });
 
+  function clearErrors(operation) {
+    if (operation) {
+      errors.value[operation] = null;
+    } else {
+      errors.value = {};
+    }
+  }
+
+  function setLoading(operation, state) {
+    loading.value[operation] = state;
+  }
+
+  async function apiCall({ operation, request, onSuccess }) {
+      clearErrors(operation);
+      setLoading(operation, true);
+  
+      try {
+        const response = await request();
+        if (onSuccess) onSuccess(response);
+        return response;
+      } catch (err) {
+        if (err.response?.status === 422) {
+          errors.value.validationErrors = err.response.data.errors; // Erreurs de validation
+        } else {
+          errors.value[operation] = err.response?.data?.message || "Une erreur est survenue.";
+          notify('error', errors.value[operation]);
+        }
+      } finally {
+        setLoading(operation, false);
+      }
+  }
+
+  async function fetchInvoices() {
+    return apiCall({
+      operation: 'fetch',
+      request: () => axios.get('/api/invoices'),
+      onSuccess: (response) => {
+        invoices.value = response.data.data;
+      },
+    });
+  }
+  
+  async function addInvoice(invoice) {
+    return apiCall({
+      operation: 'add',
+      request: () => axios.post('/api/invoices', invoice),
+      onSuccess: (response) => {
+        invoices.value.push(response.data.data);
+        notify('success', response.data.message);
+      },
+    });
+  }
+  
+  async function updateInvoice(invoice) {
+    return apiCall({
+      operation: 'update',
+      request: () => axios.put(`/api/invoices/${invoice.id}`, invoice),
+      onSuccess: (response) => {
+        const index = invoices.value.findIndex(i => i.id === invoice.id);
+        if (index !== -1) {
+          invoices.value[index] = response.data.data;
+        }
+        notify('success', response.data.message);
+      },
+    });
+  }
+  
+  async function deleteInvoice(invoiceId) {
+    return apiCall({
+      operation: 'delete',
+      request: () => axios.delete(`/api/invoices/${invoiceId}`),
+      onSuccess: (response) => {
+        invoices.value = invoices.value.filter(i => i.id !== invoiceId);
+        notify('success', response.data.message);
+      },
+    });
+  }
+
+  async function invoicePaid(invoice) {
+    return apiCall({
+      operation: 'paid',
+      request: () => axios.patch(`/api/invoices/${invoice.id}/paid`),
+      onSuccess: (response) => {
+        const index = invoices.value.findIndex(i => i.id === invoice.id);
+        if (index !== -1) {
+          invoices.value[index] = response.data.data;
+        }
+        notify('success', 'Facture marquée comme payée.');
+      },
+    });
+  }
+  
+  const pdfCache = new Map(); // Cache pour stocker les URLs Blob générées
+
+  async function getInvoicePdf(invoiceId) {
+    if (pdfCache.has(invoiceId)) {
+      return pdfCache.get(invoiceId); // 🔥 Retourne directement le PDF depuis le cache
+    }
+
+    try {
+      const response = await apiCall({
+        operation: 'pdf',
+        request: () => axios.get(`/api/invoices/${invoiceId}/pdf`, { responseType: 'blob' }),
+      });
+
+      if (!response || !response.data) {
+        throw new Error("Réponse invalide lors de la récupération du PDF.");
+      }
+
+      // 📌 Génération de l'URL Blob
+      const blobUrl = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      pdfCache.set(invoiceId, blobUrl); // 🏷️ Ajout au cache pour réutilisation
+
+      return blobUrl;
+    } catch (err) {
+      console.error(`Erreur lors de la récupération du PDF de la facture ${invoiceId} :`, err);
+      throw new Error("Impossible de récupérer le PDF.");
+    }
+  }
+
+  
+  async function sendEmail(invoiceId, emails) {
+    return apiCall({
+      operation: 'sendEmail',
+      request: () => axios.post(`/api/invoices/${invoiceId}/send-email`, { emails }),
+      onSuccess: (response) => {
+        const index = invoices.value.findIndex(i => i.id === invoiceId);
+        if (index !== -1) {
+          invoices.value[index] = response.data.data;
+        }
+        notify('success', 'Facture envoyée avec succès.');
+      },
+    });
+  }
+
   return { 
     invoices, 
-    error, 
+    errors, 
     loading, 
     fetchInvoices,
     addInvoice, 
@@ -184,6 +203,7 @@ export const useInvoicesStore = defineStore('invoices', () => {
     getInvoicePdf, 
     sendEmail, 
     invoicePaid,
+    clearErrors,
     activeFilters,
     updateFilters,
     filteredInvoices,

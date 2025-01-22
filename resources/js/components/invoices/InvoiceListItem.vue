@@ -18,20 +18,18 @@
             </p>
             <p class="text-gray-300 text-sm">
                 🏨 <span class="font-semibold text-white">Chambre :</span> {{ invoice.reservation.room.name }}
-            </p>
-            <p class="text-gray-300 text-sm">
-                📌 <span class="font-semibold text-white">Sujet :</span> {{ invoice.subject || "Non renseigné" }}
-            </p>
+            </p>           
         </div>
 
         <!-- 📅 Détails de la facturation -->
         <div class="bg-gray-900 p-4 rounded-md space-y-2">
             <p class="text-gray-300 text-sm">
-                📅 <span class="font-semibold text-white">Début de facturation :</span> {{ invoice.billing_start_date }}
+                📌 <span class="font-semibold text-white">Sujet :</span> {{ invoice.subject || "Non renseigné" }}
             </p>
+
             <p class="text-gray-300 text-sm">
-                📅 <span class="font-semibold text-white">Fin de facturation :</span> {{ invoice.billing_end_date }}
-            </p>
+                💰 <span class="font-semibold text-white">Montant :</span> {{ invoice.reservation.room.rent }} €
+            </p>            
         </div>
 
         <!-- ⏳ Statuts et dates clés -->
@@ -99,7 +97,6 @@ const props = defineProps({
     invoice: Object,
 })
 
-const toast = useToast()
 const invoicesStore = useInvoicesStore()
 const { invoicePaid } = invoicesStore
 const { loading } = storeToRefs(invoicesStore)
@@ -120,12 +117,7 @@ function getStatusBadge(status) {
 
 // 📌 Marquer la facture comme payée avec chargement
 async function markAsPaid(invoice) {
-    try {
-        await invoicePaid(invoice)
-        toast.success('Facture marquée comme payée avec succès');
-    } catch(err) {
-        toast.error('Erreur lors du marquage de la facture comme payée');
-    }
+    await invoicePaid(invoice)
 }
 </script>
 

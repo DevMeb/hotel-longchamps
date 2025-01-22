@@ -45,23 +45,19 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useToast } from 'vue-toastification';
 import { useInvoicesStore } from '@/stores/invoices';
 import { validateEmail } from '@/utils';
 import { storeToRefs } from 'pinia';
 
 const props = defineProps({
-  show: Boolean,
   invoice: Object, // L'objet facture contenant l'email du tuteur
 });
 
-const emit = defineEmits(["close", "sent"]);
+const emit = defineEmits(["close"]);
 
 const invoicesStore = useInvoicesStore();
 const { sendEmail } = invoicesStore;
 const { loading } = storeToRefs(invoicesStore);
-
-const toast = useToast();
 
 const emails = ref(props.invoice.reservation.renter?.tutor.email);
 const errors = ref({});
@@ -78,18 +74,12 @@ const submitForm = async () => {
   const invalidEmails = emailsArray.filter(email => !validateEmail(email));
 
   if (invalidEmails.length > 0) {
-    errors.value.emailAddress = `Adresse(s) email invalide(s) : ${invalidEmails.join(", ")}`;
+    errors.value.emailAddress = `Adresse(s) email invalide(s)`;
     return;
   }
 
-  try {
-    await sendEmail(props.invoice.id, emailsArray.join(";")); // Envoi sous format "email1@example.com;email2@example.com"
-    toast.success("Facture envoyée avec succès !");
-    emit("sent"); // 🔄 Émettre un événement après l'envoi
-    closeModal();
-  } catch (err) {
-    toast.error("Erreur lors de l'envoi de l'email.");
-  }
+  await sendEmail(props.invoice.id, emailsArray.join(";")); // Envoi sous format "email1@example.com;email2@example.com"
+  closeModal();
 };
 
 // 📌 Fermeture de la modale

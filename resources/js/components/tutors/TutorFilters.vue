@@ -1,26 +1,26 @@
 <template>
   <div class="bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col sm:flex-row gap-4">
     <!-- 🔍 Filtrer par nom -->
-    <div>
-      <label class="text-sm text-gray-300 font-semibold">Nom :</label>
-      <select v-model="activeFilters.last_name" class="filter-input">
-        <option value="">Tous</option>
-        <option v-for="tutor in tutorNames" :key="tutor.id" :value="tutor.last_name">
-          {{ tutor.toUpperCase() }}
-        </option>
-      </select>
-    </div>
+  <div>
+    <label class="text-sm text-gray-300 font-semibold">Nom :</label>
+    <select v-model="activeFilters.last_name" class="filter-input">
+      <option value="">Tous</option>
+      <option v-for="name in tutorNames" :key="name" :value="name">
+        {{ name?.toUpperCase() }}
+      </option>
+    </select>
+  </div>
 
-    <!-- 🔍 Filtrer par prénom -->
-    <div>
-      <label class="text-sm text-gray-300 font-semibold">Prénom :</label>
-      <select v-model="activeFilters.first_name" class="filter-input">
-        <option value="">Tous</option>
-        <option v-for="tutor in tutorFirstNames" :key="tutor.id" :value="tutor.first_name">
-          {{ tutor.toUpperCase() }}
-        </option>
-      </select>
-    </div>
+  <!-- 🔍 Filtrer par prénom -->
+  <div>
+    <label class="text-sm text-gray-300 font-semibold">Prénom :</label>
+    <select v-model="activeFilters.first_name" class="filter-input">
+      <option value="">Tous</option>
+      <option v-for="firstName in tutorFirstNames" :key="firstName" :value="firstName">
+        {{ firstName?.toUpperCase() }}
+      </option>
+    </select>
+  </div>
 
     <!-- 🔍 Filtrer par Email -->
     <div>
