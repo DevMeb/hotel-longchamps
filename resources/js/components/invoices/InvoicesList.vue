@@ -6,7 +6,7 @@
     <!-- 🔄 Chargement -->
     <div v-if="loading.fetch" class="flex justify-center my-6">
       <div class="animate-spin inline-block w-6 h-6 border-4 border-white border-t-transparent rounded-full"></div>
-      <p class="text-white text-lg font-medium ml-2">Chargement...</p>
+      <p class="text-white text-lg font-medium ml-2">Chargement des factures...</p>
     </div>
 
     <!-- ❌ Erreur -->

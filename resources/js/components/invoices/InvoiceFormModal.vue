@@ -16,13 +16,13 @@
         <form @submit.prevent="submitForm" class="mt-4 space-y-4">
           <!-- Informations de la réservation (non modifiables) -->
           <div class="bg-gray-100 p-3 rounded-lg">
-            <p class="text-sm text-gray-700"><strong>Réservation #:</strong> {{ invoice.reservation.id }}</p>
+            <p class="text-sm text-gray-700"><strong>Réservation #:</strong> {{ invoice?.reservation?.id }}</p>
             <p class="text-sm text-gray-700">
               <strong>Locataire:</strong> 
-              {{ invoice.reservation.renter.last_name.toUpperCase() }} 
-              {{ invoice.reservation.renter.first_name }}
+              {{ invoice?.reservation?.renter?.last_name.toUpperCase() }} 
+              {{ invoice?.reservation?.renter?.first_name }}
             </p>
-            <p class="text-sm text-gray-700"><strong>Chambre:</strong> {{ invoice.reservation.room.name }}</p>
+            <p class="text-sm text-gray-700"><strong>Chambre:</strong> {{ invoice?.reservation?.room?.name }}</p>
           </div>
   
           <!-- Sujet de la facture -->
@@ -32,7 +32,7 @@
             <p v-if="errors.subject" class="error-message">{{ errors.subject?.join(' ') }}</p>
           </div>
 
-          <div v-if="invoice.reservation.id">
+          <div v-if="invoice?.reservation?.id">
             <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
             <textarea rows="5" v-model="invoice.description" class="input-field" />
             <p v-if="errors.description" class="error-message">{{ errors.subject?.join(' ') }}</p>

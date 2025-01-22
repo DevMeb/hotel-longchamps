@@ -1,63 +1,60 @@
 <template>
-  <div v-if="show" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md">
-    <!-- Overlay cliquable pour fermer la modale -->
+  <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md z-50">
     <div @click.self="closeModal" class="fixed inset-0"></div>
 
     <div class="bg-white p-6 rounded-xl shadow-xl w-[90%] sm:w-96 transform transition-all animate-fade-in">
-      <!-- ✨ Titre de la modale avec icône -->
       <div class="flex items-center justify-between border-b pb-2">
         <h2 class="text-xl font-semibold text-gray-800 flex items-center">
-          <span v-if="isEditing" class="mr-2">✏️</span>
+          <span v-if="tutorData.id" class="mr-2">✏️</span>
           <span v-else class="mr-2">➕</span>
-          {{ isEditing ? 'Éditer le tuteur' : 'Ajouter un tuteur' }}
+          {{ tutorData.id ? 'Éditer le tuteur' : 'Ajouter un tuteur' }}
         </h2>
-        <button @click="closeModal" class="text-gray-500 hover:text-gray-700 transition">
-          ✖️
-        </button>
+        <button @click="closeModal" class="text-gray-500 hover:text-gray-700 transition">✖️</button>
       </div>
 
-      <!-- 📋 Formulaire -->
       <form @submit.prevent="submitForm" class="mt-4 space-y-4">
-        <!-- Nom -->
         <div>
           <label for="last_name" class="block text-sm font-medium text-gray-700">Nom</label>
           <input ref="firstInput" type="text" v-model="tutorData.last_name"
             class="input-field" :class="{ 'border-red-500': errors.last_name }">
-          <p v-if="errors.last_name" class="error-message">{{ errors.last_name?.join(' ') }}</p>
+            <p v-if="errors.validationErrors?.last_name" class="error-message">
+              {{ errors.validationErrors.last_name.join(', ') }}
+            </p>        
         </div>
 
-        <!-- Prénom -->
         <div>
           <label for="first_name" class="block text-sm font-medium text-gray-700">Prénom</label>
           <input type="text" v-model="tutorData.first_name"
             class="input-field" :class="{ 'border-red-500': errors.first_name }">
-          <p v-if="errors.first_name" class="error-message">{{ errors.first_name?.join(' ') }}</p>
+            <p v-if="errors.validationErrors?.first_name" class="error-message">
+              {{ errors.validationErrors.first_name.join(', ') }}
+            </p>        
         </div>
 
-        <!-- Email -->
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
           <input type="email" v-model="tutorData.email"
             class="input-field" :class="{ 'border-red-500': errors.email }">
-          <p v-if="errors.email" class="error-message">{{ errors.email?.join(' ') }}</p>
+            <p v-if="errors.validationErrors?.email" class="error-message">
+              {{ errors.validationErrors.phone.join(', ') }}
+            </p>
         </div>
 
-        <!-- Téléphone -->
         <div>
           <label for="phone" class="block text-sm font-medium text-gray-700">Téléphone</label>
           <input type="text" v-model="tutorData.phone"
             class="input-field" :class="{ 'border-red-500': errors.phone }">
-          <p v-if="errors.phone" class="error-message">{{ errors.phone?.join(' ') }}</p>
+            <p v-if="errors.validationErrors?.phone" class="error-message">
+              {{ errors.validationErrors.phone.join(', ') }}
+            </p>
         </div>
 
-        <!-- ⚡️ Boutons d'action -->
         <div class="flex justify-end space-x-3 mt-4">
           <button type="button" @click="closeModal" class="btn-secondary">Annuler</button>
           
-          <!-- Bouton désactivé si en cours de soumission -->
-          <button type="submit" class="btn-primary flex items-center" :disabled="isSubmitting">
-            <span v-if="isSubmitting" class="animate-spin mr-2">⏳</span>
-            {{ isEditing ? 'Mettre à jour' : 'Ajouter' }}
+          <button type="submit" class="btn-primary flex items-center" :disabled="tutorData.id ? loading.update : loading.add">
+            <span v-if="tutorData.id ? loading.update : loading.add" class="animate-spin mr-2">⏳</span>
+            {{ tutorData.id ? 'Mettre à jour' : 'Ajouter' }}
           </button>
         </div>
       </form>
@@ -66,86 +63,50 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { useTutorsStore } from '@/stores/tutors';
-import { useToast } from 'vue-toastification';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps({
-  show: Boolean,
   tutor: Object,
-  isEditing: Boolean
 });
 
 const emit = defineEmits(['close']);
 const tutorsStore = useTutorsStore();
-const { addTutor, updateTutor } = tutorsStore;
-const toast = useToast();
+const { addTutor, updateTutor, clearErrors } = tutorsStore
+const {  errors, loading } = storeToRefs(tutorsStore);
 
-const tutorData = ref({ id: null, last_name: '', first_name: '', email: '', phone: '' });
-const errors = ref({});
-const isSubmitting = ref(false);
-const firstInput = ref(null);
-
-// ✅ Mise à jour automatique des données du formulaire
-watch(() => props.tutor, (newTutor) => {
-  if (newTutor && props.isEditing) {
-    tutorData.value = { ...newTutor };
-  } else {
-    resetForm();
-  }
-}, { immediate: true, deep: true });
-
-// 🔹 Focus automatique sur le premier champ lors de l'ouverture de la modale
-watch(() => props.show, (isOpen) => {
-  if (isOpen) {
-    setTimeout(() => firstInput.value?.focus(), 100);
-  }
+const tutorData = ref({
+  id: null,
+  last_name: '',
+  first_name: '',
+  email: '',
+  phone: '',
 });
 
-// ✅ Ferme la modale en appuyant sur `Échap`
-onMounted(() => {
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && props.show) {
-      closeModal();
-    }
-  });
+// Initialise les données au montage ou lorsqu'elles changent
+watchEffect(() => {
+  tutorData.value = props.tutor
+    ? { ...props.tutor }
+    : { id: null, last_name: '', first_name: '', email: '', phone: '' };
 });
 
 const submitForm = async () => {
-  try {
-    isSubmitting.value = true;
-    
-    if (props.isEditing) {
-      await updateTutor(tutorData.value);
-      toast.success('Tuteur mis à jour avec succès.');
-    } else {
-      await addTutor(tutorData.value);
-      toast.success('Tuteur ajouté avec succès.');
-    }
+  const success = tutorData.value.id
+    ? await updateTutor(tutorData.value)
+    : await addTutor(tutorData.value);
 
+  if (success) {
     closeModal();
-  } catch (err) {
-    if (err.response?.data?.errors) {
-      errors.value = err.response.data.errors;
-      toast.error("Des erreurs de validation ont été détectées.");
-    } else {
-      toast.error("Une erreur est survenue.");
-    }
-  } finally {
-    isSubmitting.value = false;
   }
 };
 
 const closeModal = () => {
-  resetForm();
-  emit('close');
-};
-
-function resetForm() {
-  tutorData.value = { id: null, last_name: '', first_name: '', email: '', phone: '' };
-  errors.value = {};
+  clearErrors('validationErrors'); // Réinitialiser uniquement les erreurs de validation
+  emit("close");
 };
 </script>
+
 
 <style scoped>
 /* Animation d'apparition de la modale */

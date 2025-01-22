@@ -56,7 +56,7 @@
                 📄 Voir
             </button>
 
-            <button v-if="invoice.status === 'pending'" @click="showUpdateModal = true" class="btn-action bg-blue-500">
+            <button v-if="invoice.status === 'pending'" @click="showFormModal = true" class="btn-action bg-blue-500">
                 ✏️ Modifier
             </button>
 
@@ -78,7 +78,7 @@
 
     <!-- Modals -->
     <InvoicePdfModal v-if="showPdfModal" :invoice="invoice" @close="showPdfModal = false" />
-    <InvoiceFormModal v-if="showUpdateModal" :invoice="invoice" @close="showUpdateModal = false" />
+    <InvoiceFormModal v-if="showFormModal" :invoice="invoice" @close="showFormModal = false" />
     <InvoiceDeleteModal v-if="showDeleteModal" :invoice="invoice" @close="showDeleteModal = false" />
     <InvoiceSendMailModal v-if="showSendModal" :invoice="invoice" @close="showSendModal = false" />
 </template>
@@ -105,7 +105,7 @@ const { invoicePaid } = invoicesStore
 const { loading } = storeToRefs(invoicesStore)
 
 const showDeleteModal = ref(false)
-const showUpdateModal = ref(false)
+const showFormModal = ref(false)
 const showSendModal = ref(false)
 const showPdfModal = ref(false)
 

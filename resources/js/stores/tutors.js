@@ -1,58 +1,137 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import axios from 'axios';
+import { notify } from '@/utils';
+import { useStorage } from "@vueuse/core";
 
 export const useTutorsStore = defineStore('tutors', () => {
   const tutors = ref([]);
-  const error = ref(null);
-  const loading = ref(false);
+  const errors = ref({}); 
+  const loading = ref({});
 
-  async function fetchTutors() {
-    loading.value = true;
-    error.value = null;
-    tutors.value = [];
+  // 📌 Persistance des filtres avec localStorage
+  const activeFilters = useStorage("tutor-filters", {
+    last_name: "",
+    first_name: "",
+    email: "",
+  });
+
+  // 📌 Mise à jour des filtres
+  function updateFilters(filters) {
+    activeFilters.value = filters;
+  }
+
+  // 📌 Vérification si des filtres sont actifs
+  const isAnyFilterActive = computed(() => {
+    return Object.values(activeFilters.value).some(value => value !== "");
+  });
+
+  // 📌 Application des filtres aux tuteurs
+  const filteredTutors = ref([]);
+
+  watch([tutors, activeFilters], () => {
+    filteredTutors.value = tutors.value.filter(tutor => {
+      const { last_name, first_name, email } = activeFilters.value;
+
+      if (last_name && tutor.last_name !== last_name) return false;
+      if (first_name && tutor.first_name !== first_name) return false;
+      if (email && !tutor.email.toLowerCase().includes(email.toLowerCase())) return false;
+
+      return true;
+    });
+  }, { deep: true, immediate: true });
+
+  function clearErrors(operation) {
+    if (operation) {
+      errors.value[operation] = null;
+    } else {
+      errors.value = {};
+    }
+  }
+
+  function setLoading(operation, state) {
+    loading.value[operation] = state;
+  }
+
+  async function apiCall({ operation, request, onSuccess }) {
+    clearErrors(operation);
+    setLoading(operation, true);
 
     try {
-      const response = await axios.get('/api/tutors');
-      tutors.value = response.data.data;
+      const response = await request();
+      if (onSuccess) onSuccess(response);
+      return response;
     } catch (err) {
-      error.value = err.response?.data?.message || `Erreur ${err.response?.status}: ${err.response?.statusText}`;
+      if (err.response?.status === 422) {
+        errors.value[operation] = err.response.data.errors; // Erreurs de validation
+      } else {
+        errors.value[operation] = err.response?.data?.message || "Une erreur est survenue.";
+        notify('error', errors.value[operation]);
+      }
+      throw err; // Propager l'erreur si nécessaire
     } finally {
-      loading.value = false;
+      setLoading(operation, false);
     }
+  }
+
+  async function fetchTutors() {
+    return apiCall({
+      operation: 'fetch',
+      request: () => axios.get('/api/tutors'),
+      onSuccess: (response) => {
+        tutors.value = response.data.data;
+      },
+    });
   }
 
   async function addTutor(tutor) {
-    try {
-      const response = await axios.post('/api/tutors', tutor);
-      tutors.value.push(response.data.data); // ✅ Ajout local
-      return response;
-    } catch (err) {
-      throw err;
-    }
+    return apiCall({
+      operation: 'add',
+      request: () => axios.post('/api/tutors', tutor),
+      onSuccess: (response) => {
+        tutors.value.push(response.data.data);
+        notify('success', response.data.message);
+      },
+    });
   }
 
   async function updateTutor(tutor) {
-    try {
-      const response = await axios.put(`/api/tutors/${tutor.id}`, tutor);
-      const index = tutors.value.findIndex(t => t.id === tutor.id);
-      if (index !== -1) {
-        tutors.value[index] = response.data.data; // ✅ Mise à jour locale
-      }
-      return response;
-    } catch (err) {
-      throw err;
-    }
+    return apiCall({
+      operation: 'update',
+      request: () => axios.put(`/api/tutors/${tutor.id}`, tutor),
+      onSuccess: (response) => {
+        const index = tutors.value.findIndex(t => t.id === tutor.id);
+        if (index !== -1) {
+          tutors.value[index] = response.data.data;
+        }
+        notify('success', response.data.message);
+      },
+    });
   }
 
   async function deleteTutor(tutorId) {
-    try {
-      await axios.delete(`/api/tutors/${tutorId}`);
-      tutors.value = tutors.value.filter(t => t.id !== tutorId); // ✅ Suppression locale
-    } catch (err) {
-      throw err;
-    }
+    return apiCall({
+      operation: 'delete',
+      request: () => axios.delete(`/api/tutors/${tutorId}`),
+      onSuccess: () => {
+        tutors.value = tutors.value.filter(t => t.id !== tutorId);
+        notify('success', "Le tuteur a été supprimé avec succès.");
+      },
+    });
   }
 
-  return { tutors, error, loading, fetchTutors, addTutor, updateTutor, deleteTutor };
+  return {
+    tutors,
+    errors,
+    loading,
+    fetchTutors,
+    addTutor,
+    updateTutor,
+    deleteTutor,
+    clearErrors,
+    activeFilters,
+    updateFilters,
+    filteredTutors,
+    isAnyFilterActive,
+  };
 });

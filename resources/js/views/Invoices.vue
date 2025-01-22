@@ -22,15 +22,5 @@
 
 <script setup>
 import Navbar from '@/components/Navbar.vue';
-import { onMounted } from 'vue';
-import { useInvoicesStore } from '@/stores/invoices';
-
 import { InvoicesList } from '@/components/invoices/';
-
-const invoicesStore = useInvoicesStore();
-const { fetchInvoices } = invoicesStore;
-
-onMounted(() => {
-  fetchInvoices();
-});
 </script>
