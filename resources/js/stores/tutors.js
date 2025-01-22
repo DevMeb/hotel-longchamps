@@ -63,12 +63,11 @@ export const useTutorsStore = defineStore('tutors', () => {
       return response;
     } catch (err) {
       if (err.response?.status === 422) {
-        errors.value[operation] = err.response.data.errors; // Erreurs de validation
+        errors.value.validationErrors = err.response.data.errors; // Erreurs de validation
       } else {
         errors.value[operation] = err.response?.data?.message || "Une erreur est survenue.";
         notify('error', errors.value[operation]);
       }
-      throw err; // Propager l'erreur si nécessaire
     } finally {
       setLoading(operation, false);
     }

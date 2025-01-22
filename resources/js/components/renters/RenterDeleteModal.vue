@@ -1,60 +1,66 @@
 <template>
-    <div v-if="show" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-md">
-      <!-- Overlay cliquable pour fermer la modale -->
-      <div @click.self="cancelDelete" class="fixed inset-0"></div>
-  
-      <div class="bg-white p-6 rounded-xl shadow-xl w-[90%] sm:w-96 transform transition-all animate-fade-in">
-        <!-- ⚠️ Titre de la modale avec icône -->
-        <div class="flex items-center justify-between border-b pb-2">
-          <h2 class="text-xl font-semibold text-red-600 flex items-center">
-            ⚠️ Confirmation de suppression
-          </h2>
-          <button @click="cancelDelete" class="text-gray-500 hover:text-gray-700 transition">
-            ✖️
-          </button>
-        </div>
-  
-        <!-- 📝 Message d'avertissement -->
-        <p class="text-gray-700 mt-4 text-lg text-center">
-          Êtes-vous sûr de vouloir supprimer <br> 
-          <strong class="text-gray-900">{{ renter?.last_name.toUpperCase() }} {{ renter?.first_name }}</strong> ?
-        </p>
-        <p class="text-sm text-gray-500 text-center mt-2">Cette action est <span class="font-semibold text-red-600">irréversible</span>.</p>
-  
-        <!-- ⚡️ Boutons d'action -->
-        <div class="flex justify-center space-x-4 mt-6">
-          <button @click="cancelDelete" class="btn-secondary">Annuler</button>
-          <button @click="confirmDelete" class="btn-danger flex items-center">
-            <span class="mr-2">🗑️</span> Supprimer
-          </button>
-        </div>
+  <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-md flex items-center justify-center z-50">
+    <!-- Overlay cliquable pour fermer la modale -->
+    <div @click.self="close" class="absolute inset-0"></div>
+
+    <!-- Boîte de dialogue -->
+    <div class="bg-white p-6 rounded-lg shadow-lg w-[24rem] animate-fade-in transform transition-transform scale-95">
+      <!-- En-tête -->
+      <div class="flex items-center space-x-3">
+        <span class="text-red-600 text-2xl">⚠️</span>
+        <h2 class="text-lg font-semibold text-red-600">Confirmation de suppression</h2>
+      </div>
+
+      <!-- Contenu -->
+      <p class="text-gray-700 mt-3">
+        Êtes-vous sûr de vouloir supprimer 
+        <strong class="text-gray-900">{{ renter.last_name.toUpperCase() }} {{ renter.first_name }}</strong> ?
+      </p>
+      <p class="text-sm text-gray-500 mt-2">Cette action est <span class="font-semibold text-red-500">irréversible</span>.</p>
+
+      <!-- Actions -->
+      <div class="flex justify-end mt-6 space-x-3">
+        <button 
+          @click="close"
+          class="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 transition"
+        >
+          Annuler
+        </button>
+        <button 
+          @click="destroyRenter"
+          class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition flex items-center"
+        >
+          <span class="mr-2">🗑️</span> Supprimer
+        </button>
       </div>
     </div>
-  </template>
+  </div>
+</template>
   
-  <script setup>
-  defineProps({
-    show: Boolean,
-    renter: Object,
-  });
+<script setup>
+  import { useRentersStore } from '@/stores/renters'
+
+  const rentersStore = useRentersStore()
+  const { deleteRenter } = rentersStore
+  const { renter } = defineProps({ renter: Object });
   
-  const emit = defineEmits(["confirm", "cancel"]);
+  const emit = defineEmits(["close"]);
+
+  function close() {
+    emit("close");
+  }
+
+  async function destroyRenter() {
+    await deleteRenter(renter.id)
+  }
+</script>
   
-  const cancelDelete = () => {
-    emit("cancel");
-  };
-  
-  const confirmDelete = () => {
-    emit("confirm");
-  };
-  </script>
-  
-  <style scoped>
-  /* Animation d'apparition de la modale */
+<style scoped>
+  /* Animation d'apparition fluide */
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: scale(0.95);
+      transform: scale(0.9);
     }
     to {
       opacity: 1;
@@ -65,15 +71,5 @@
   .animate-fade-in {
     animation: fadeIn 0.2s ease-out forwards;
   }
-  
-  /* Bouton principal */
-  .btn-danger {
-    @apply px-4 py-2 bg-red-500 text-white rounded-md font-semibold hover:bg-red-600 transition;
-  }
-  
-  /* Bouton secondaire */
-  .btn-secondary {
-    @apply px-4 py-2 bg-gray-500 text-white rounded-md font-semibold hover:bg-gray-400 transition;
-  }
-  </style>
+</style>
   

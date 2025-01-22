@@ -36,7 +36,7 @@
           <input type="email" v-model="tutorData.email"
             class="input-field" :class="{ 'border-red-500': errors.email }">
             <p v-if="errors.validationErrors?.email" class="error-message">
-              {{ errors.validationErrors.phone.join(', ') }}
+              {{ errors.validationErrors.email.join(', ') }}
             </p>
         </div>
 
