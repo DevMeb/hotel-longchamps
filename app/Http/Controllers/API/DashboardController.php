@@ -80,6 +80,9 @@ class DashboardController extends Controller
                             'status' => $invoice->status,
                             'amount' => $invoice->reservation->room->rent,
                             'subject' => $invoice->subject,
+                            'billing_start_date' => $invoice->billing_start_date,
+                            'billing_end_date' => $invoice->billing_end_date,
+                            'reservation_id' => $invoice->reservation_id,
                         ];
                     })
                     ->groupBy('status'); // Grouper par statut

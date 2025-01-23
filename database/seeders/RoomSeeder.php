@@ -15,7 +15,7 @@ class RoomSeeder extends Seeder
     {
         // Créer 10 tutors
         Room::factory()
-            ->count(10)
+            ->count(5)
             ->create();
     }
 }

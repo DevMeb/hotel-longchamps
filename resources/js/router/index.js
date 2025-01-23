@@ -1,90 +1,22 @@
-// src/router/index.js
-import { createRouter, createWebHistory } from 'vue-router';
-import Home from '@/views/Home.vue';  // Page d'accueil gérée par Vue
-import Login from '@/views/Login.vue';  // Page de connexion
-import Tutors from '@/views/Tutors.vue';  // Importez le composant Tutors
-import Renters from '@/views/Renters.vue';  // Importez le composant Renters
-import Rooms from '@/views/Rooms.vue';  // Importez le composant Rooms
-import Reservations from '@/views/Reservations.vue';  // Importez le composant Reservations
-import Invoices from '@/views/Invoices.vue';  // Importez le composant Invoices
-
-const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
-    meta: { requiresAuth: true },  // La route Home nécessite l'authentification
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: Login,
-    meta: { guestOnly: true },  // La route Login doit être accessible uniquement aux non-authentifiés
-  },
-  {
-    path: '/tutors',
-    name: 'Tutors',
-    component: Tutors,
-    meta: { requiresAuth: true },  // Protéger l'accès par authentification
-  },
-  {
-    path: '/renters',
-    name: 'Renters',
-    component: Renters,
-    meta: { requiresAuth: true },  // Protéger l'accès par authentification
-  },
-  {
-    path: '/rooms',
-    name: 'Rooms',
-    component: Rooms,
-    meta: { requiresAuth: true },  // Protéger l'accès par authentification
-  },
-  {
-    path: '/reservations',
-    name: 'Reservations',
-    component: Reservations,
-    meta: { requiresAuth: true },  // Protéger l'accès par authentification
-  },
-  {
-    path: '/invoices',
-    name: 'Invoices',
-    component: Invoices,
-    meta: { requiresAuth: true },  // Protéger l'accès par authentification
-  }
-];
+import { createRouter, createWebHistory } from "vue-router";
+import routes from "./routes"; // 📌 Import des routes séparées
+import { useAuthStore } from "@/stores/auth"; // 📌 Gestion centralisée de l'auth
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
 });
 
+// 📌 Middleware de navigation
 router.beforeEach(async (to, from, next) => {
-  const token = localStorage.getItem('token');
-  let isAuthenticated = false;
+  const authStore = useAuthStore();
+  const isAuthenticated = await authStore.checkAuth(); // ✅ Vérification via Pinia
 
-  if (token) {
-    try {
-      // Envoyer une requête pour vérifier la validité du token
-      const response = await axios.get('api/validate-token', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      isAuthenticated = response.data.valid; // Si l'API retourne 'valid: true'
-    } catch (error) {
-      console.error('Token invalide ou expiré', error);
-      localStorage.removeItem('token'); // Supprimer le token invalide
-    }
-  }
-
-  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
-    // Si la route nécessite l'authentification et que l'utilisateur n'est pas authentifié, rediriger vers /login
-    next({ name: 'Login' });
-  } else if (to.matched.some(record => record.meta.guestOnly) && isAuthenticated) {
-    // Si la route est réservée aux invités (non-authentifiés) et que l'utilisateur est authentifié, rediriger vers /
-    next({ name: 'Home' });
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next({ name: "Login" });
+  } else if (to.meta.guestOnly && isAuthenticated) {
+    next({ name: "Home" });
   } else {
-    // Sinon, continuer la navigation
     next();
   }
 });

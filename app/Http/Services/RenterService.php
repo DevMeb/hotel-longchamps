@@ -8,7 +8,9 @@ class RenterService
 {
     public function getAllRenters()
     {
-        return Renter::all();
+        return Renter::orderBy('last_name', 'asc')
+                    ->orderBy('first_name', 'asc')
+                    ->get();
     }
 
     public function createRenter(array $data): Renter

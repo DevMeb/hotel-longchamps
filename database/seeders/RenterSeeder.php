@@ -14,9 +14,8 @@ class RenterSeeder extends Seeder
      */
     public function run(): void
     {
-        // Créer 10 tutors
         Tutor::factory()
-            ->count(10)
+            ->count(5)
             ->has(Renter::factory()->count(5)) // Chaque tutor aura 5 renters
             ->create();
     }

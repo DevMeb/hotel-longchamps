@@ -8,7 +8,7 @@ class RoomService
 {
     public function getAllRooms()
     {
-        return Room::all();
+        return Room::orderBy('rent', 'desc')->get();
     }
 
     public function createRoom(array $data): Room

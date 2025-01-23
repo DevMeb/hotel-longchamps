@@ -8,7 +8,9 @@ class TutorService
 {
     public function getAllTutors()
     {
-        return Tutor::all();
+        return Tutor::orderBy('last_name', 'asc')
+                    ->orderBy('first_name', 'asc')
+                    ->get();
     }
 
     public function createTutor(array $data): Tutor

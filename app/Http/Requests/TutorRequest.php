@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class TutorRequest extends FormRequest
 {
@@ -72,5 +74,12 @@ class TutorRequest extends FormRequest
             'phone.max' => 'Le numéro de téléphone ne doit pas dépasser 20 caractères.',
             'phone.regex' => 'Le numéro de téléphone ne doit contenir que des chiffres.',
         ];
+    }
+
+    public function failedValidation(Validator $validator) {
+        throw new ValidationException($validator, response()->json([
+            'message' => 'Des erreurs de validation ont eu lieu pour les tuteurs.',
+            'errors' => $validator->errors(),
+        ], 422));
     }
 }

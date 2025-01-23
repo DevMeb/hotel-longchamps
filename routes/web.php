@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Route unique pour servir l'application Vue.js
+// 🔥 Exclure les routes API de la redirection vers Vue.js
 Route::get('/{any}', function () {
-    return view('app');
-})->where('any', '.*');
+    return view('app'); // Charge Vue.js
+})->where('any', '^(?!api).*$'); // Exclure /api/*

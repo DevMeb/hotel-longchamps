@@ -57,6 +57,7 @@ const logout = () => {
 };
 
 const navigation = ref([
+  { name: 'Dashboard', href: '/', current: false},
   { name: 'Tuteurs', href: '/tutors', current: false },
   { name: 'Locataires', href: '/renters', current: false },
   { name: 'Chambres', href: '/rooms', current: false },
