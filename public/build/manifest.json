@@ -1,6 +1,83 @@
 {
+  "_InvoiceFormModal-Ceh5VDJt.js": {
+    "file": "assets/InvoiceFormModal-Ceh5VDJt.js",
+    "name": "InvoiceFormModal",
+    "imports": [
+      "resources/js/app.js",
+      "_InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-CoR13ITW.js",
+      "_utils-mT5RtY73.js"
+    ]
+  },
+  "_InvoiceSendMailModal-CmaRKEuw.js": {
+    "file": "assets/InvoiceSendMailModal-CmaRKEuw.js",
+    "name": "InvoiceSendMailModal",
+    "imports": [
+      "resources/js/app.js",
+      "_InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-CoR13ITW.js",
+      "_utils-mT5RtY73.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ]
+  },
+  "_InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-!~{00c}~.js": {
+    "file": "assets/InvoiceSendMailModal-_IzRFIhS.css",
+    "src": "_InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-!~{00c}~.js"
+  },
+  "_InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-CoR13ITW.js": {
+    "file": "assets/InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-CoR13ITW.js",
+    "name": "InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang",
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js"
+    ],
+    "css": [
+      "assets/InvoiceSendMailModal-_IzRFIhS.css"
+    ]
+  },
+  "__plugin-vue_export-helper-DlAUqK2U.js": {
+    "file": "assets/_plugin-vue_export-helper-DlAUqK2U.js",
+    "name": "_plugin-vue_export-helper"
+  },
+  "_hotel-logo-EkMEN4AC.js": {
+    "file": "assets/hotel-logo-EkMEN4AC.js",
+    "name": "hotel-logo",
+    "assets": [
+      "assets/hotel-logo-CYW32a5S.png"
+    ]
+  },
+  "_renters-BWrsbS6i.js": {
+    "file": "assets/renters-BWrsbS6i.js",
+    "name": "renters",
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js"
+    ]
+  },
+  "_rooms-BBmIhNCl.js": {
+    "file": "assets/rooms-BBmIhNCl.js",
+    "name": "rooms",
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js"
+    ]
+  },
+  "_tutors-BvmYhJZ0.js": {
+    "file": "assets/tutors-BvmYhJZ0.js",
+    "name": "tutors",
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js"
+    ]
+  },
+  "_utils-mT5RtY73.js": {
+    "file": "assets/utils-mT5RtY73.js",
+    "name": "utils",
+    "imports": [
+      "resources/js/app.js",
+      "_hotel-logo-EkMEN4AC.js"
+    ]
+  },
   "resources/css/app.css": {
-    "file": "assets/app-D6n5Mu4L.css",
+    "file": "assets/app-DAGQQzTw.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -9,15 +86,138 @@
     "src": "resources/images/hotel-logo.png"
   },
   "resources/js/app.js": {
-    "file": "assets/app-DRnD5Xxx.js",
+    "file": "assets/app-MOnSz09z.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
-    "css": [
-      "assets/app-CcwQW3P-.css"
+    "dynamicImports": [
+      "resources/js/views/Dashboard.vue",
+      "resources/js/views/Invoices.vue",
+      "resources/js/views/Login.vue",
+      "resources/js/views/NotFound.vue",
+      "resources/js/views/Renters.vue",
+      "resources/js/views/Reservations.vue",
+      "resources/js/views/Rooms.vue",
+      "resources/js/views/Tutors.vue"
     ],
-    "assets": [
-      "assets/hotel-logo-CYW32a5S.png"
+    "css": [
+      "assets/app-C2Rkk2Fc.css"
+    ]
+  },
+  "resources/js/views/Dashboard.vue": {
+    "file": "assets/Dashboard-dFhQe2Y3.js",
+    "name": "Dashboard",
+    "src": "resources/js/views/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js",
+      "_InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-CoR13ITW.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_renters-BWrsbS6i.js",
+      "_rooms-BBmIhNCl.js",
+      "_InvoiceSendMailModal-CmaRKEuw.js",
+      "_hotel-logo-EkMEN4AC.js"
+    ],
+    "css": [
+      "assets/Dashboard-DSFrDLKm.css"
+    ]
+  },
+  "resources/js/views/Invoices.vue": {
+    "file": "assets/Invoices-BV0Alg7m.js",
+    "name": "Invoices",
+    "src": "resources/js/views/Invoices.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js",
+      "_InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-CoR13ITW.js",
+      "_renters-BWrsbS6i.js",
+      "_rooms-BBmIhNCl.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_InvoiceFormModal-Ceh5VDJt.js",
+      "_InvoiceSendMailModal-CmaRKEuw.js",
+      "_hotel-logo-EkMEN4AC.js"
+    ]
+  },
+  "resources/js/views/Login.vue": {
+    "file": "assets/Login-DaF6I5BK.js",
+    "name": "Login",
+    "src": "resources/js/views/Login.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_hotel-logo-EkMEN4AC.js"
+    ]
+  },
+  "resources/js/views/NotFound.vue": {
+    "file": "assets/NotFound-WELoWyTv.js",
+    "name": "NotFound",
+    "src": "resources/js/views/NotFound.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ]
+  },
+  "resources/js/views/Renters.vue": {
+    "file": "assets/Renters-4_ZXE-of.js",
+    "name": "Renters",
+    "src": "resources/js/views/Renters.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js",
+      "_renters-BWrsbS6i.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_tutors-BvmYhJZ0.js",
+      "_hotel-logo-EkMEN4AC.js"
+    ],
+    "css": [
+      "assets/Renters-5r3XyYHa.css"
+    ]
+  },
+  "resources/js/views/Reservations.vue": {
+    "file": "assets/Reservations-CjZqOKsP.js",
+    "name": "Reservations",
+    "src": "resources/js/views/Reservations.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js",
+      "_renters-BWrsbS6i.js",
+      "_rooms-BBmIhNCl.js",
+      "_InvoiceFormModal-Ceh5VDJt.js",
+      "_InvoiceSendMailModal.vue_vue_type_style_index_0_scoped_b9107dd6_lang-CoR13ITW.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_hotel-logo-EkMEN4AC.js"
+    ],
+    "css": [
+      "assets/Reservations-Cw3_lbQP.css"
+    ]
+  },
+  "resources/js/views/Rooms.vue": {
+    "file": "assets/Rooms-BK7BmktR.js",
+    "name": "Rooms",
+    "src": "resources/js/views/Rooms.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js",
+      "_rooms-BBmIhNCl.js",
+      "_hotel-logo-EkMEN4AC.js"
+    ]
+  },
+  "resources/js/views/Tutors.vue": {
+    "file": "assets/Tutors-D9lQhg6K.js",
+    "name": "Tutors",
+    "src": "resources/js/views/Tutors.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_utils-mT5RtY73.js",
+      "_tutors-BvmYhJZ0.js",
+      "_hotel-logo-EkMEN4AC.js"
     ]
   }
 }
