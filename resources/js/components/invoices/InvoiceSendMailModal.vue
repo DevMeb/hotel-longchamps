@@ -59,7 +59,7 @@ const invoicesStore = useInvoicesStore();
 const { sendEmail } = invoicesStore;
 const { loading } = storeToRefs(invoicesStore);
 
-const emails = ref(props.invoice.reservation.renter?.tutor.email);
+const emails = ref(props.invoice?.reservation?.renter?.tutor?.email);
 const errors = ref({});
 
 

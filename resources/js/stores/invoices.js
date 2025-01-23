@@ -4,11 +4,14 @@ import { computed, ref, watch } from 'vue';
 import axios from 'axios';
 import { notify } from '@/utils';
 import { useStorage } from '@vueuse/core';
+import { useDashboardStore } from "@/stores/dashboard";
 
 export const useInvoicesStore = defineStore('invoices', () => {
   const invoices = ref([]);
   const errors = ref({}); 
   const loading = ref({});
+
+  const dashboardStore = useDashboardStore(); 
 
   // 📌 Persistance des filtres avec localStorage
   const activeFilters = useStorage('invoice-filters', {
@@ -84,6 +87,7 @@ export const useInvoicesStore = defineStore('invoices', () => {
           errors.value[operation] = err.response?.data?.message || "Une erreur est survenue.";
           notify('error', errors.value[operation]);
         }
+        console.error(err)
       } finally {
         setLoading(operation, false);
       }
@@ -135,19 +139,6 @@ export const useInvoicesStore = defineStore('invoices', () => {
     });
   }
 
-  async function invoicePaid(invoice) {
-    return apiCall({
-      operation: 'paid',
-      request: () => axios.patch(`/api/invoices/${invoice.id}/paid`),
-      onSuccess: (response) => {
-        const index = invoices.value.findIndex(i => i.id === invoice.id);
-        if (index !== -1) {
-          invoices.value[index] = response.data.data;
-        }
-        notify('success', 'Facture marquée comme payée.');
-      },
-    });
-  }
   
   const pdfCache = new Map(); // Cache pour stocker les URLs Blob générées
 
@@ -183,14 +174,77 @@ export const useInvoicesStore = defineStore('invoices', () => {
       operation: 'sendEmail',
       request: () => axios.post(`/api/invoices/${invoiceId}/send-email`, { emails }),
       onSuccess: (response) => {
+        const updatedInvoice = response.data.data;
         const index = invoices.value.findIndex(i => i.id === invoiceId);
+
         if (index !== -1) {
-          invoices.value[index] = response.data.data;
+          invoices.value[index] = updatedInvoice;
+        } else {
+          console.warn(`⚠️ Facture ${invoiceId} non trouvée dans le store invoices.`);
         }
+
+        // ✅ Mise à jour dans le dashboard UNIQUEMENT si les données sont déjà chargées
+        if (dashboardStore.dashboardData && updatedInvoice.reservation) {
+          const updatedDashboardInvoice = {
+            id: updatedInvoice.id,
+            reservation_id: updatedInvoice.reservation.id,
+            subject: updatedInvoice.subject,
+            amount: parseInt(updatedInvoice.reservation.room.rent.replace('.', '')),
+            billing_start_date: updatedInvoice.billing_start_date,
+            billing_end_date: updatedInvoice.billing_end_date,
+            status: updatedInvoice.status,
+          };
+
+          console.log(`🔄 Mise à jour de la facture dans le dashboard`, updatedDashboardInvoice);
+          dashboardStore.updateInvoiceInDashboard(invoiceId, updatedDashboardInvoice, "pending");
+        } else {
+          console.warn(`⚠️ Impossible de mettre à jour la facture ${invoiceId} dans le dashboard.`);
+        }
+
         notify('success', 'Facture envoyée avec succès.');
       },
     });
   }
+
+
+  async function invoicePaid(invoice) {
+    return apiCall({
+      operation: 'paid',
+      request: () => axios.patch(`/api/invoices/${invoice.id}/paid`),
+      onSuccess: (response) => {
+        const updatedInvoice = response.data.data;
+        const index = invoices.value.findIndex(i => i.id === invoice.id);
+
+        if (index !== -1) {
+          invoices.value[index] = updatedInvoice;
+        } else {
+          console.warn(`⚠️ Facture ${invoice.id} non trouvée dans le store invoices.`);
+        }
+
+        // ✅ Mise à jour dans le dashboard UNIQUEMENT si les données sont déjà chargées
+        if (dashboardStore.dashboardData && updatedInvoice.reservation) {
+          const updatedDashboardInvoice = {
+            id: updatedInvoice.id,
+            reservation_id: updatedInvoice.reservation.id,
+            subject: updatedInvoice.subject,
+            amount: parseInt(updatedInvoice.reservation.room.rent.replace('.', '')),
+            billing_start_date: updatedInvoice.billing_start_date,
+            billing_end_date: updatedInvoice.billing_end_date,
+            status: updatedInvoice.status,  // 🔹 On utilise le statut de la facture en paramètre
+          };
+
+          console.log(`🔄 Mise à jour de la facture dans le dashboard`, updatedDashboardInvoice);
+          dashboardStore.updateInvoiceInDashboard(invoice.id, updatedDashboardInvoice, invoice.status);
+        } else {
+          console.warn(`⚠️ Impossible de mettre à jour la facture ${invoice.id} dans le dashboard.`);
+        }
+
+        notify('success', 'Facture marquée comme payée.');
+      },
+    });
+  }
+
+
 
   return { 
     invoices, 

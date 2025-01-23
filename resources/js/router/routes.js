@@ -1,7 +1,7 @@
 const loadView = (view) => () => import(`@/views/${view}.vue`);
 
 export default [
-  { path: "/", name: "Home", component: loadView("Home"), meta: { requiresAuth: true } },
+  { path: "/", name: "Dashboard", component: loadView("Dashboard"), meta: { requiresAuth: true } },
   { path: "/login", name: "Login", component: loadView("Login"), meta: { guestOnly: true } },
   { path: "/tutors", name: "Tutors", component: loadView("Tutors"), meta: { requiresAuth: true } },
   { path: "/renters", name: "Renters", component: loadView("Renters"), meta: { requiresAuth: true } },
